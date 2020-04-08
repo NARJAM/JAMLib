@@ -7,7 +7,7 @@ public class GameStateReceiverController<GSM, PSM, IM> : StreamReceiverControlle
 {
     public StreamReceiverConfigModel gameStateReceiverConfig = new StreamReceiverConfigModel {
         isFlexibleProcessing = true,
-        bufferCountMaxout = 5,
+        bufferCountMaxout = 4,
         bufferCountMin = 0,
         bufferCountIdeal = 2,
         predictionEnabled = false,
@@ -33,7 +33,7 @@ public class GameStateReceiverController<GSM, PSM, IM> : StreamReceiverControlle
 
     public override void ProcessData(GameStatePack<GSM, PSM> data)
     {
-        gameController.SetGameState(data);
+        gameController.ProcessGameStatePack(data);
     }
 
 }

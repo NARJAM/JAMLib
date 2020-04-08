@@ -28,7 +28,7 @@ public class GameStateSenderController<GSM, PSM, IM> : StreamSenderController<Ga
         GameStatePack <GSM,PSM> g = new GameStatePack<GSM, PSM>();
 
         g.playerStates = gameController.SamplePlayerStates();
-        g.gameStateModel = gameController.SampleGameState();
+        g.gameState = gameController.SampleGameState();
         return g;
     }
 

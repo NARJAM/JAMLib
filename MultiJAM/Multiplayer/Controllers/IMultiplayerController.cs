@@ -16,6 +16,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
     public abstract void OnSpawnMatch(GSM gsm);
     public abstract PSM GetSpawnPlayerState(int playerIndex);
     public abstract GSM SampleGameState();
+    public abstract void SetGameState(GSM gsm);
 
     void Start()
     {
@@ -62,7 +63,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
     public void SpawnMatch(GameStatePack<GSM,PSM> startMatchData)
     {
         SpawnPlayers(startMatchData.playerStates);
-        OnSpawnMatch(startMatchData.gameStateModel);
+        OnSpawnMatch(startMatchData.gameState);
     }
 
     public abstract GSM GetSpawnGameSate();
@@ -104,7 +105,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
     public void InitiateMatch()
     {
         GameStatePack<GSM,PSM> smd = new GameStatePack<GSM,PSM>();
-        smd.gameStateModel = GetSpawnGameSate();
+        smd.gameState = GetSpawnGameSate();
         smd.playerStates = playerInitDic;
         signalRController.EmitToClients("start", smd);
         SpawnMatch(smd);
@@ -117,7 +118,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
         stateReceiver.StartReception("gameState");
     }
 
-    public void SetGameState(GameStatePack<GSM, PSM> gameStateData)
+    public void ProcessGameStatePack(GameStatePack<GSM, PSM> gameStateData)
     {
         foreach (KeyValuePair<string, PlayerStatePack<PSM>> entry in gameStateData.playerStates)
         {
@@ -130,6 +131,8 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
                 masterControllerDic[entry.Key].mirrorPlayer.SetFromModel(gameStateData.playerStates[entry.Key].playerState);
             }
         }
+
+        SetGameState(gameStateData.gameState);
     }
 }
 
@@ -144,7 +147,7 @@ public struct PlayerStatePack<PSM>
 public struct GameStatePack<GSM, PSM>
 {
     public Dictionary<string,PlayerStatePack<PSM>> playerStates;
-    public GSM gameStateModel;
+    public GSM gameState;
 }
 
 public struct InputPack<IM>

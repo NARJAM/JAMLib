@@ -135,7 +135,7 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
 
             for (int i = 0; i < (int)streamReceiverConfig.processMode; i++)
             {
-                if (currentPackageProcessed.currentlyProcessed < currentPackageProcessed.dataStream.Count && currentPackageProcessed.dataStream.Count > 0)
+                if (currentPackageProcessed.currentlyProcessed < (currentPackageProcessed.dataStream.Count-1) && currentPackageProcessed.dataStream.Count > 0)
                 {
                     currentPackageProcessed.currentlyProcessed++;
                     ProcessInstance(currentPackageProcessed.dataStream[currentPackageProcessed.currentlyProcessed].data);

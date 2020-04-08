@@ -9,7 +9,7 @@ public class InputReceiverController<PSM,IM> : StreamReceiverController<InputPac
     public StreamReceiverConfigModel inputReceiverConfig = new StreamReceiverConfigModel
     {
         isFlexibleProcessing = true,
-        bufferCountMaxout = 5,
+        bufferCountMaxout = 4,
         bufferCountMin = 0,
         bufferCountIdeal = 2,
         predictionEnabled = false,
