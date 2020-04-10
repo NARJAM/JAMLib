@@ -6,6 +6,8 @@ public abstract class IPlayerController<PSM,IM> : MonoBehaviour
 {
     public IMasterController<PSM, IM> masterController;
     private PlayerStatePack<PSM> playerStatePack;
+    public Dictionary<int, ServerEventRequest> serverEvents = new Dictionary<int, ServerEventRequest>();
+
     public PSM currentPlayerState;
     public bool isInitialized;
     public bool isOwner;
@@ -30,8 +32,33 @@ public abstract class IPlayerController<PSM,IM> : MonoBehaviour
         return ProcessInput(inputPack.inputData);
     }
 
+
+
     public abstract void OnInitialize(PSM initialState);
     public abstract PSM ProcessInput(IM playerInput);
+    public abstract void ProcessServerEvents(int requestId, object requestData);
+
+    public void AddServerEventRequest(int requestId, object requestData)
+    {
+        ServerEventRequest ser;
+        if(serverEvents.TryGetValue(requestId,out ser))
+        {
+            ser.requestInstances.Add(requestData);
+        }
+        else
+        {
+            ser = new ServerEventRequest();
+            ser.requestInstances = new List<object>();
+            ser.requestInstances.Add(requestData);
+            serverEvents.Add(requestId,ser);
+        }
+    }
+
+    public Dictionary<int, ServerEventRequest> SampleServerRequests() {
+        Dictionary<int, ServerEventRequest> temp = serverEvents;
+        serverEvents = new Dictionary<int, ServerEventRequest>();
+        return temp;
+    }
 
     public PlayerStatePack<PSM> SamplePlayerState()
     {

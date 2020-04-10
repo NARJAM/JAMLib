@@ -155,4 +155,10 @@ public struct InputPack<IM>
     public int tick;
     public string connectionId;
     public IM inputData;
+    public Dictionary<int,ServerEventRequest> serverEventRequests;
+}
+
+public struct ServerEventRequest
+{
+    public List<object> requestInstances;
 }

@@ -66,6 +66,7 @@ public abstract class IMasterController<PSM,IM> : MonoBehaviour
     public void SetGhostState(PlayerStatePack<PSM> psp)
     {
         ghostPlayer.SetFromModel(psp.playerState);
+        OnGhostStateSet(psp.playerState);
         TickModel<PSM, IM> pastTick = new TickModel<PSM, IM>();
 
         if (inputSenderController.tickHistory.TryGetValue(psp.tick, out pastTick))
@@ -82,6 +83,8 @@ public abstract class IMasterController<PSM,IM> : MonoBehaviour
 
     }
 
+    public abstract void OnGhostStateSet(PSM playerState);
+
     public PSM ProjectState(PlayerStatePack<PSM> psp)
     {
         TickModel<PSM, IM> pastTick = new TickModel<PSM, IM>();
@@ -97,4 +100,14 @@ public abstract class IMasterController<PSM,IM> : MonoBehaviour
         return projectionController.currentPlayerState;
     }
 
+    public void ProcessServerRequests(Dictionary<int, ServerEventRequest> requests)
+    {
+        foreach (KeyValuePair<int, ServerEventRequest> kvp in requests)
+        {
+            for (int i = 0; i < kvp.Value.requestInstances.Count; i++)
+            {
+                liveController.ProcessServerEvents(kvp.Key, kvp.Value.requestInstances[i]);
+            }
+        }
+    }
 }
