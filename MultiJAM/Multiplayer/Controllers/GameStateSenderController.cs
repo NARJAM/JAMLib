@@ -5,7 +5,7 @@ using UnityEngine;
 public class GameStateSenderController<GSM, PSM, IM> : StreamSenderController<GameStatePack<GSM, PSM>>
 {
     public StreamSenderConfigModel gameStateSenderConfig = new StreamSenderConfigModel {
-         sendRate = 10,
+         sendRate = 5,
          historySize = 10,
          gameAuth = GameAuth.Server,
     };

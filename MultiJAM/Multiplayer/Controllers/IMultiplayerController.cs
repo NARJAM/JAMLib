@@ -45,16 +45,16 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
         stateReceiver =new GameStateReceiverController<GSM, PSM, IM>(this);
     }
 
-    public Dictionary<string, IMasterController<PSM,IM>> masterControllerDic = new Dictionary<string, IMasterController<PSM, IM>>();
-    public Dictionary<string, PlayerStatePack<PSM>> playerInitDic = new Dictionary<string, PlayerStatePack<PSM>>();
+    public IMasterController<PSM,IM>[] masterControllerDic = new IMasterController<PSM, IM>[0];
+    public PlayerStatePack<PSM>[] playerInitDic = new PlayerStatePack<PSM>[0];
 
-    public Dictionary<string, PlayerStatePack<PSM>> SamplePlayerStates()
+    public PlayerStatePack<PSM>[] SamplePlayerStates()
     {
-        Dictionary<string, PlayerStatePack<PSM>> result = new Dictionary<string, PlayerStatePack<PSM>>();
+        PlayerStatePack<PSM>[] result = new PlayerStatePack<PSM>[masterControllerDic.Length];
 
-        foreach (KeyValuePair<string, IMasterController<PSM, IM>> entry in masterControllerDic)
+        for(int i=0; i< masterControllerDic.Length; i++)
         {
-            result.Add(entry.Key, entry.Value.liveController.SamplePlayerState());
+            result[i] = masterControllerDic[i].liveController.SamplePlayerState();
         }
 
         return result;
@@ -68,38 +68,47 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
 
     public abstract GSM GetSpawnGameSate();
 
-    void SpawnPlayers(Dictionary<string, PlayerStatePack<PSM>> players)
+    void SpawnPlayers(PlayerStatePack<PSM>[] players)
     {
-        foreach (KeyValuePair<string, PlayerStatePack<PSM>> entry in players)
+        masterControllerDic = new IMasterController<PSM, IM>[players.Length];
+        for (int i=0; i<players.Length; i++)
         {
             GameObject g = Instantiate(masterControllerPrefab);
             IMasterController<PSM, IM> pu = g.GetComponent<IMasterController<PSM, IM>>();
-            masterControllerDic.Add(players[entry.Key].conId, pu);
+            masterControllerDic[i] = pu;
 
             if (multiplayerConfigModel.gameAuth == GameAuth.Client)
             {
-                if (signalRController.connectionId == players[entry.Key].conId)
+                if (signalRController.connectionId == players[i].conId)
                 {
-                    pu.Initialize(signalRController,players[entry.Key], true);
+                    pu.Initialize(signalRController, players[i], true);
                 }
                 else
                 {
-                    pu.Initialize(signalRController, players[entry.Key], false);
+                    pu.Initialize(signalRController, players[i], false);
                 }
             }
             else
             {
-                pu.Initialize(signalRController, players[entry.Key], false);
+                pu.Initialize(signalRController, players[i], false);
             }
         }
+
     }
 
     public void PlayerJoined(string conId, string auth)
     {
         PlayerStatePack<PSM> ps = new PlayerStatePack <PSM>();
-        ps.playerState = GetSpawnPlayerState(playerInitDic.Count);
+        PlayerStatePack<PSM>[] newPI = new PlayerStatePack<PSM>[playerInitDic.Length + 1];
+        for(int i=0; i<playerInitDic.Length; i++)
+        {
+            newPI[i] = playerInitDic[i];
+        }
+
+        ps.playerState = GetSpawnPlayerState(playerInitDic.Length);
         ps.conId = conId;
-        playerInitDic.Add(conId,ps);
+        newPI[playerInitDic.Length] =ps;
+        playerInitDic = newPI;
     }
 
     public void InitiateMatch()
@@ -120,18 +129,17 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
 
     public void ProcessGameStatePack(GameStatePack<GSM, PSM> gameStateData)
     {
-        foreach (KeyValuePair<string, PlayerStatePack<PSM>> entry in gameStateData.playerStates)
+        for(int i=0; i<gameStateData.playerStates.Length; i++)
         {
-            if (masterControllerDic[entry.Key].isOwner)
+            if (masterControllerDic[i].isOwner)
             {
-                masterControllerDic[entry.Key].SetGhostState(gameStateData.playerStates[entry.Key]);
+                masterControllerDic[i].SetGhostState(gameStateData.playerStates[i]);
             }
             else
             {
-                masterControllerDic[entry.Key].SetMirrorState(gameStateData.playerStates[entry.Key].playerState);
+                masterControllerDic[i].SetMirrorState(gameStateData.playerStates[i].playerState);
             }
         }
-
         SetGameState(gameStateData.gameState);
     }
 }
@@ -146,7 +154,7 @@ public struct PlayerStatePack<PSM>
 
 public struct GameStatePack<GSM, PSM>
 {
-    public Dictionary<string,PlayerStatePack<PSM>> playerStates;
+    public PlayerStatePack<PSM>[] playerStates;
     public GSM gameState;
 }
 
@@ -155,7 +163,7 @@ public struct InputPack<IM>
     public int tick;
     public string connectionId;
     public IM inputData;
-    public Dictionary<int,ServerEventRequest> serverEventRequests;
+    public ServerEventRequest[] serverEventRequests;
 }
 
 public struct ServerEventRequest

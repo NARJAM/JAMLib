@@ -105,13 +105,16 @@ public abstract class IMasterController<PSM,IM> : MonoBehaviour
         return projectionController.currentPlayerState;
     }
 
-    public void ProcessServerRequests(Dictionary<int, ServerEventRequest> requests)
+    public void ProcessServerRequests(ServerEventRequest[] requests)
     {
-        foreach (KeyValuePair<int, ServerEventRequest> kvp in requests)
+        for(int i=0; i<requests.Length; i++)
         {
-            for (int i = 0; i < kvp.Value.requestInstances.Count; i++)
+            if (requests[i].requestInstances != null)
             {
-                liveController.ProcessServerEvents(kvp.Key, kvp.Value.requestInstances[i]);
+                for (int j = 0; j < requests[i].requestInstances.Count; j++)
+                {
+                    liveController.ProcessServerEvents(i, requests[i].requestInstances[j]);
+                }
             }
         }
     }

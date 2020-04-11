@@ -6,7 +6,7 @@ public abstract class IPlayerController<PSM,IM> : MonoBehaviour
 {
     public IMasterController<PSM, IM> masterController;
     private PlayerStatePack<PSM> playerStatePack;
-    public Dictionary<int, ServerEventRequest> serverEvents = new Dictionary<int, ServerEventRequest>();
+    public ServerEventRequest[] serverEvents = new ServerEventRequest[0];
 
     public PSM currentPlayerState;
     public bool isInitialized;
@@ -41,22 +41,32 @@ public abstract class IPlayerController<PSM,IM> : MonoBehaviour
     public void AddServerEventRequest(int requestId, object requestData)
     {
         ServerEventRequest ser;
-        if(serverEvents.TryGetValue(requestId,out ser))
+        if (serverEvents.Length <= requestId)
         {
-            ser.requestInstances.Add(requestData);
+            ServerEventRequest[] temp = new ServerEventRequest[requestId + 1];
+            for(int i=0; i<serverEvents.Length; i++)
+            {
+                temp[i] = serverEvents[i];
+            }
+            serverEvents = temp;
+        }
+
+        if(serverEvents[requestId].requestInstances!=null)
+        {
+            serverEvents[requestId].requestInstances.Add(requestData);
         }
         else
         {
             ser = new ServerEventRequest();
             ser.requestInstances = new List<object>();
             ser.requestInstances.Add(requestData);
-            serverEvents.Add(requestId,ser);
+            serverEvents[requestId] = ser;
         }
     }
 
-    public Dictionary<int, ServerEventRequest> SampleServerRequests() {
-        Dictionary<int, ServerEventRequest> temp = serverEvents;
-        serverEvents = new Dictionary<int, ServerEventRequest>();
+    public ServerEventRequest[] SampleServerRequests() {
+        ServerEventRequest[] temp = serverEvents;
+        serverEvents = new ServerEventRequest[1];
         return temp;
     }
 

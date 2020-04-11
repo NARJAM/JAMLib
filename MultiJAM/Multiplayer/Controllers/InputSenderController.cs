@@ -10,7 +10,7 @@ public class InputSenderController<PSM, IM> : StreamSenderController<InputPack<I
     public int tickTrack;
 
     public StreamSenderConfigModel inputSenderConfig = new StreamSenderConfigModel {
-         sendRate = 10,
+         sendRate = 5,
          historySize = 10,
          gameAuth = GameAuth.Server,
     };
