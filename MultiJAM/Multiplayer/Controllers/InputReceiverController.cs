@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputReceiverController<PSM,IM> : StreamReceiverController<InputPack<IM>>
+public class InputReceiverController<PSM,IM, PIM> : StreamReceiverController<InputPack<IM>, PIM>
 {
-    public IMasterController<PSM, IM> masterController;
+    public IMasterController<PSM, IM, PIM> masterController;
 
     public StreamReceiverConfigModel inputReceiverConfig = new StreamReceiverConfigModel
     {
@@ -18,7 +18,7 @@ public class InputReceiverController<PSM,IM> : StreamReceiverController<InputPac
         processMode = ProcessMode.Ideal
     };
 
-    public InputReceiverController(IMasterController<PSM,IM> _masterController) : base(_masterController.signalRController, _masterController)
+    public InputReceiverController(IMasterController<PSM,IM, PIM> _masterController) : base(_masterController.signalRController, _masterController)
     {
         streamReceiverConfig = inputReceiverConfig;
         masterController = _masterController;

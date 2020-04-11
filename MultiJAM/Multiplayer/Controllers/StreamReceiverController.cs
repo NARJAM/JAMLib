@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class StreamReceiverController<IncomingDataModel>
+public abstract class StreamReceiverController<IncomingDataModel,PIM>
 {
     public StreamReceiverConfigModel streamReceiverConfig;
     public StreamRecieverLogModel streamRecieverLogModel = new StreamRecieverLogModel {
@@ -24,10 +24,10 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
 
     public DataInstance<IncomingDataModel> lastDataInstanceProcessed = new DataInstance<IncomingDataModel>();
     public DataPackage<IncomingDataModel> lastPackageProcessed = new DataPackage<IncomingDataModel>();
-    public TransportController signalRController;
+    public TransportController<PIM> signalRController;
     public MonoBehaviour looper;
 
-    public StreamReceiverController(TransportController _signalRController, MonoBehaviour _looper)
+    public StreamReceiverController(TransportController<PIM> _signalRController, MonoBehaviour _looper)
     {
         looper = _looper;
         signalRController = _signalRController;

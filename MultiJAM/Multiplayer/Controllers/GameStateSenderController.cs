@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameStateSenderController<GSM, PSM, IM> : StreamSenderController<GameStatePack<GSM, PSM>>
+public class GameStateSenderController<GSM, PSM, IM, PIM> : StreamSenderController<GameStatePack<GSM, PSM, PIM>,PIM>
 {
     public StreamSenderConfigModel gameStateSenderConfig = new StreamSenderConfigModel {
          sendRate = 5,
@@ -10,22 +10,22 @@ public class GameStateSenderController<GSM, PSM, IM> : StreamSenderController<Ga
          gameAuth = GameAuth.Server,
     };
 
-    public GameStateSenderController(IMultiplayerController<GSM, PSM, IM> _gameController) : base(_gameController.signalRController, _gameController)
+    public GameStateSenderController(IMultiplayerController<GSM, PSM, IM,PIM> _gameController) : base(_gameController.signalRController, _gameController)
     {
         streamSenderConfig = gameStateSenderConfig;
         gameController = _gameController;
     }
 
-    public IMultiplayerController<GSM, PSM, IM> gameController;
+    public IMultiplayerController<GSM, PSM, IM, PIM> gameController;
 
-    public override GameStatePack<GSM, PSM> GetData()
+    public override GameStatePack<GSM, PSM, PIM> GetData()
     {
         return GetGameState();
     }
      
-    public GameStatePack<GSM, PSM> GetGameState()
+    public GameStatePack<GSM, PSM, PIM> GetGameState()
     {
-        GameStatePack <GSM,PSM> g = new GameStatePack<GSM, PSM>();
+        GameStatePack <GSM,PSM, PIM> g = new GameStatePack<GSM, PSM, PIM>();
 
         g.playerStates = gameController.SamplePlayerStates();
         g.gameState = gameController.SampleGameState();

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputSenderController<PSM, IM> : StreamSenderController<InputPack<IM>>
+public class InputSenderController<PSM, IM, PIM> : StreamSenderController<InputPack<IM>, PIM>
 {
-    public IMasterController<PSM, IM> masterController;
+    public IMasterController<PSM, IM, PIM> masterController;
     public Dictionary<int, TickModel<PSM, IM>> tickHistory = new Dictionary<int, TickModel<PSM, IM>>();
     public int tickHistorySize=500;
     public int tickTrack;
@@ -15,7 +15,7 @@ public class InputSenderController<PSM, IM> : StreamSenderController<InputPack<I
          gameAuth = GameAuth.Server,
     };
 
-    public InputSenderController(IMasterController<PSM, IM> _masterController): base(_masterController.signalRController, _masterController)
+    public InputSenderController(IMasterController<PSM, IM,PIM> _masterController): base(_masterController.signalRController, _masterController)
     {
         streamSenderConfig = inputSenderConfig;
         masterController = _masterController;

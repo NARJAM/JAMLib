@@ -2,17 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class IPlayerController<PSM,IM> : MonoBehaviour
+public abstract class IPlayerController<PSM,IM, PIM> : MonoBehaviour
 {
-    public IMasterController<PSM, IM> masterController;
-    private PlayerStatePack<PSM> playerStatePack;
+    public IMasterController<PSM, IM, PIM> masterController;
+    private PlayerStatePack<PSM, PIM> playerStatePack;
     public ServerEventRequest[] serverEvents = new ServerEventRequest[0];
 
     public PSM currentPlayerState;
+    public PIM initPlayer;
     public bool isInitialized;
     public bool isOwner;
     int tick;
-    public void Initialize(PSM initialState,bool _isOwner, string connectionId, IMasterController<PSM, IM> _masterController)
+
+    public void Initialize(PSM initialState,bool _isOwner, string connectionId, IMasterController<PSM, IM, PIM> _masterController)
     {
         isOwner = _isOwner;
         masterController = _masterController;
@@ -70,7 +72,7 @@ public abstract class IPlayerController<PSM,IM> : MonoBehaviour
         return temp;
     }
 
-    public PlayerStatePack<PSM> SamplePlayerState()
+    public PlayerStatePack<PSM, PIM> SamplePlayerState()
     {
         playerStatePack.tick = tick;
         playerStatePack.playerState = currentPlayerState;

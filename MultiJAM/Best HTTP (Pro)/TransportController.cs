@@ -12,14 +12,14 @@ using System.IO;
 using System.Text;
 using OdinSerializer;
 
-public class TransportController
+public class TransportController<PIM>
 {
     public string connectionId;
 
     Connection signalRConnection;
     public MultiplayerConfigModel multiplayerConfig;
 
-    public TransportController(MultiplayerConfigModel _multiJAMConfig)
+    public TransportController(MultiplayerConfigModel _multiJAMConfig, PIM initData, OnConnectedDelegate onConnectedEvent)
     {
         multiplayerConfig = _multiJAMConfig;
         Uri uri = new Uri(_multiJAMConfig.serverURL + "signalr");
@@ -27,10 +27,11 @@ public class TransportController
         ObservableDictionary<string, string> queryParams = new ObservableDictionary<string, string>();
 
         queryParams.Add("gameAuth", _multiJAMConfig.gameAuth.ToString());
+        queryParams.Add("initData", JsonUtility.ToJson(initData));
         signalRConnection.AdditionalQueryParams = queryParams;
         signalRConnection.Open();
 
-        signalRConnection.OnConnected += (con) => Debug.Log("Connected to the SignalR server! " + con.Hubs[0].Name);
+        signalRConnection.OnConnected += onConnectedEvent;
         signalRConnection.OnClosed += (con) => Debug.Log("Connection Closed");
         signalRConnection.OnError += (con, err) => Debug.Log("Error: " + err);
         signalRConnection.OnNonHubMessage += (con, data) => Debug.Log("Message from server: " + data.ToString());
@@ -47,11 +48,13 @@ public class TransportController
     {
         connectionId = msg.Arguments[0].ToString();
         string gameAuth = msg.Arguments[1].ToString();
+        PIM initData = default(PIM);
+        JsonUtility.FromJsonOverwrite(msg.Arguments[2].ToString(), initData);
         Debug.Log("OnSelfJoined : " + connectionId + " GameAuth: " + gameAuth);
 
         for(int i=0; i<onSelfJoinedList.Count; i++)
         {
-            onSelfJoinedList[i].Invoke(connectionId, gameAuth);
+            onSelfJoinedList[i].Invoke(connectionId, gameAuth, initData);
         }
     }
 
@@ -60,10 +63,11 @@ public class TransportController
         string conId = msg.Arguments[0].ToString();
         string gameAuth = msg.Arguments[1].ToString();
         Debug.Log("OnSessionJoined: " + conId + " GameAuth: " + gameAuth);
-
+        PIM initData = default(PIM);
+        JsonUtility.FromJsonOverwrite(msg.Arguments[2].ToString(), initData);
         for (int i = 0; i < onPlayerJoinedList.Count; i++)
         {
-            onPlayerJoinedList[i].Invoke(conId, gameAuth);
+            onPlayerJoinedList[i].Invoke(conId, gameAuth, initData);
         }
     }
 
@@ -119,7 +123,7 @@ public class TransportController
     OnNodeEvent1 onConnectedNodeEvent;
 
 
-    public delegate void OnNodeEvent2(string conID, string auth);
+    public delegate void PlayerJoinedEvent(string conID, string auth, PIM initData);
 
     public void OnConnectedToHub(OnNodeEvent1 onNodeEvent)
     {
@@ -137,8 +141,8 @@ public class TransportController
 
     Dictionary<string, OnNodeEvent3> onFromServerDic = new Dictionary<string, OnNodeEvent3>();
     Dictionary<string, OnNodeEvent3> onFromClientDic = new Dictionary<string, OnNodeEvent3>();
-    List<OnNodeEvent2> onPlayerJoinedList = new List<OnNodeEvent2>();
-    List<OnNodeEvent2> onSelfJoinedList = new List<OnNodeEvent2>();
+    List<PlayerJoinedEvent> onPlayerJoinedList = new List<PlayerJoinedEvent>();
+    List<PlayerJoinedEvent> onSelfJoinedList = new List<PlayerJoinedEvent>();
 
     //Set1
     public void EmitToClients(string eventName, object eventData)
@@ -176,12 +180,12 @@ public class TransportController
         onFromClientDic.Add(eventName, onNodeEvent);
     }
 
-    public void OnOtherJoined(OnNodeEvent2 onNodeEvent)
+    public void OnOtherJoined(PlayerJoinedEvent onNodeEvent)
     {
         onPlayerJoinedList.Add(onNodeEvent);
     }
 
-    public void OnSelfJoined(OnNodeEvent2 onNodeEvent)
+    public void OnSelfJoined(PlayerJoinedEvent onNodeEvent)
     {
         onSelfJoinedList.Add(onNodeEvent);
     }

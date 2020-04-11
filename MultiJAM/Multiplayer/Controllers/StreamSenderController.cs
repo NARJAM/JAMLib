@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public abstract class StreamSenderController<OutgoingData>
+public abstract class StreamSenderController<OutgoingData, PIM>
 {
     [Header("Config")]
     public List<DataPackage<OutgoingData>> packageHistory = new List<DataPackage<OutgoingData>>();
@@ -14,10 +14,10 @@ public abstract class StreamSenderController<OutgoingData>
     [Header("Stats")]
     public int instancesSentCount;
     public int packagesSentCount;
-    TransportController signalRController;
+    TransportController<PIM> signalRController;
     MonoBehaviour looper;
 
-    public StreamSenderController(TransportController _signalRController, MonoBehaviour _looper)
+    public StreamSenderController(TransportController<PIM> _signalRController, MonoBehaviour _looper)
     {
         looper = _looper;
         signalRController = _signalRController;
