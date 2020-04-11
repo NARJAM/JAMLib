@@ -36,7 +36,7 @@ public class InputReceiverController<PSM,IM> : StreamReceiverController<InputPac
 
     public override void ProcessData(InputPack<IM> data)
     {
-        masterController.mirrorPlayer.SetFromModel(masterController.liveController.ProcessPack(data));
+        masterController.SetMirrorState(masterController.liveController.ProcessPack(data));
         masterController.ProcessServerRequests(data.serverEventRequests);
        
     }

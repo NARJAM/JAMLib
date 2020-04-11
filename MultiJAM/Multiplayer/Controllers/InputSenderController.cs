@@ -29,7 +29,7 @@ public class InputSenderController<PSM, IM> : StreamSenderController<InputPack<I
         pi.tick = tickTrack;
         PSM psm = masterController.liveController.ProcessPack(pi);
         masterController.ProcessServerRequests(pi.serverEventRequests);
-        masterController.mirrorPlayer.SetFromModel(psm);
+        masterController.SetMirrorState(psm);
 
         TickModel<PSM,IM> tm = new TickModel<PSM, IM>();
         tm.state = psm;

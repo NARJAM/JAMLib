@@ -128,7 +128,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM> : MonoBehaviour
             }
             else
             {
-                masterControllerDic[entry.Key].mirrorPlayer.SetFromModel(gameStateData.playerStates[entry.Key].playerState);
+                masterControllerDic[entry.Key].SetMirrorState(gameStateData.playerStates[entry.Key].playerState);
             }
         }
 

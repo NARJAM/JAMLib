@@ -60,7 +60,12 @@ public abstract class IMasterController<PSM,IM> : MonoBehaviour
             pastPlayer.gameObject.SetActive(false);
             ghostPlayer.gameObject.SetActive(false);
         }
+    }
 
+    public void SetMirrorState(PSM psp)
+    {
+        mirrorPlayer.SetFromModel(psp);
+        OnMirrorStateSet(psp);
     }
 
     public void SetGhostState(PlayerStatePack<PSM> psp)
@@ -80,9 +85,9 @@ public abstract class IMasterController<PSM,IM> : MonoBehaviour
                 CorrectPlayerState(projectedState);
             }
         }
-
     }
 
+    public abstract void OnMirrorStateSet(PSM playerState);
     public abstract void OnGhostStateSet(PSM playerState);
 
     public PSM ProjectState(PlayerStatePack<PSM> psp)
