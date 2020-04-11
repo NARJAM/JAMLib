@@ -25,8 +25,6 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
         QualitySettings.vSyncCount = 0;
     }
 
-    public abstract PSM GetClientPlayerState();
-
     public void ConnectToMatch(PIM init) {
         signalRController = new TransportController<PIM>(multiplayerConfigModel, init, MatchConnected);
 
