@@ -84,7 +84,6 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
             GameObject g = Instantiate(masterControllerPrefab);
             IMasterController<PSM, IM, PIM> pu = g.GetComponent<IMasterController<PSM, IM, PIM>>();
             masterControllerDic[i] = pu;
-            pu.SetPlayerInit(players[i].playerInit);
             if (multiplayerConfigModel.gameAuth == GameAuth.Client)
             {
                 if (signalRController.connectionId == players[i].conId)
@@ -100,6 +99,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
             {
                 pu.Initialize(signalRController, players[i], false);
             }
+            pu.SetPlayerInit(players[i].playerInit);
         }
 
     }
@@ -153,6 +153,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
     }
 }
 
+[Serializable]
 public struct PlayerStatePack<PSM,PIM>
 {
     public int tick;

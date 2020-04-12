@@ -68,7 +68,8 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
         OnMirrorStateSet(psp);
     }
 
-    public void SetPlayerInit(PIM pim) {
+    public void SetPlayerInit(PIM pim) 
+    {
         mirrorPlayer.SetInit(pim);
     }
 

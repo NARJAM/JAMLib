@@ -63,8 +63,9 @@ public class TransportController<PIM>
         string conId = msg.Arguments[0].ToString();
         string gameAuth = msg.Arguments[1].ToString();
         Debug.Log("OnSessionJoined: " + conId + " GameAuth: " + gameAuth);
-        PIM initData = default(PIM);
-        JsonUtility.FromJsonOverwrite(msg.Arguments[2].ToString(), initData);
+        PIM initData = default;
+        initData = LitJson.JsonMapper.ToObject<PIM>(msg.Arguments[2].ToString());
+
         for (int i = 0; i < onPlayerJoinedList.Count; i++)
         {
             onPlayerJoinedList[i].Invoke(conId, gameAuth, initData);
