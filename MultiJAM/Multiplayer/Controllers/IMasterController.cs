@@ -10,24 +10,21 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
     public IInputController<IM> inputController;
     public InputReceiverController<PSM,IM,PIM> inputReceiverController;
     public InputSenderController<PSM,IM,PIM> inputSenderController;
-    public IPlayerView<PSM, PIM> ghostPlayer;
     public IPlayerView<PSM, PIM> mirrorPlayer;
-    public IPlayerView<PSM, PIM> projectedPlayer;
-    public IPlayerView<PSM, PIM> pastPlayer;
+    public PSM ghostState;
+    public PSM projectedState;
+    public PSM pastState;
     public TransportController<PIM> signalRController;
 
     public GameObject liveControllerObj;
     public GameObject projectionControllerObj;
     public GameObject inputControllerObj;
-    public GameObject ghostPlayerObj;
     public GameObject mirrorPlayerObj;
-    public GameObject projectedPlayerObj;
-    public GameObject pastPlayerObj;
 
     public bool isOwner;
     public string connectionId;
 
-    public abstract void CorrectPlayerState(PSM serverState);
+    public abstract PSM CorrectPlayerState(PSM currentState,PSM serverState);
     public abstract bool CheckForCorrection(PSM serverState, PSM localState);
 
     public void Initialize(TransportController<PIM> _signalRController,PlayerStatePack<PSM,PIM> psp, bool _isOwner)
@@ -36,10 +33,7 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
         liveController = liveControllerObj.GetComponent<IPlayerController<PSM, IM, PIM>>();
         projectionController = projectionControllerObj.GetComponent<IPlayerController<PSM,IM, PIM>> ();
         inputController = inputControllerObj.GetComponent<IInputController<IM>>();
-        ghostPlayer = ghostPlayerObj.GetComponent<IPlayerView<PSM, PIM>>();
         mirrorPlayer = mirrorPlayerObj.GetComponent<IPlayerView<PSM, PIM>>();
-        projectedPlayer = projectedPlayerObj.GetComponent<IPlayerView<PSM, PIM>>();
-        pastPlayer = pastPlayerObj.GetComponent<IPlayerView<PSM, PIM>>();
         liveController.initPlayer = psp.playerInit;
         isOwner = _isOwner;
         connectionId = psp.conId;
@@ -57,8 +51,6 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
             inputReceiverController.StartReception(connectionId);
             inputController.enabled = false;
             projectionController.gameObject.SetActive(false);
-            pastPlayer.gameObject.SetActive(false);
-            ghostPlayer.gameObject.SetActive(false);
         }
     }
 
@@ -75,19 +67,17 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
 
     public void SetGhostState(PlayerStatePack<PSM, PIM> psp)
     {
-        ghostPlayer.SetFromModel(psp.playerState);
+        ghostState = psp.playerState;
         OnGhostStateSet(psp.playerState);
         TickModel<PSM, IM> pastTick = new TickModel<PSM, IM>();
 
         if (inputSenderController.tickHistory.TryGetValue(psp.tick, out pastTick))
         {
-            pastPlayer.SetFromModel(pastTick.state);
+            pastState = pastTick.state;
 
             if (CheckForCorrection(psp.playerState, pastTick.state))
             {
-                PSM projectedState = ProjectState(psp);
-                projectedPlayer.SetFromModel(projectedState);
-                CorrectPlayerState(projectedState);
+                ProjectState(psp);
             }
         }
     }
@@ -95,19 +85,32 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
     public abstract void OnMirrorStateSet(PSM playerState);
     public abstract void OnGhostStateSet(PSM playerState);
 
-    public PSM ProjectState(PlayerStatePack<PSM, PIM> psp)
+    public void ProjectState(PlayerStatePack<PSM, PIM> psp)
     {
         TickModel<PSM, IM> pastTick = new TickModel<PSM, IM>();
         if (inputSenderController.tickHistory.TryGetValue(psp.tick, out pastTick))
         {
             projectionController.SetState(psp.playerState);
-            pastPlayer.SetFromModel(psp.playerState);
+            pastState = psp.playerState;
             for (int i = psp.tick+1; i < inputSenderController.tickTrack; i++)
             {
-                projectionController.ProcessInput(inputSenderController.tickHistory[i].input);
+                TickModel<PSM, IM> newTick = new TickModel<PSM, IM>();
+                projectedState = projectionController.ProcessInput(inputSenderController.tickHistory[i].input);
+                newTick.state = CorrectPlayerState(inputSenderController.tickHistory[i].state, projectedState);
+                newTick.input = inputSenderController.tickHistory[i].input;
+                newTick.tick = inputSenderController.tickHistory[i].tick;
+                inputSenderController.tickHistory[i] = newTick;
             }
+
+            TickModel<PSM, IM> newTick2 = new TickModel<PSM, IM>();
+            projectedState = projectionController.ProcessInput(inputSenderController.tickHistory[inputSenderController.tickTrack].input);
+            newTick2.state = CorrectPlayerState(inputSenderController.tickHistory[inputSenderController.tickTrack].state, projectedState);
+            newTick2.input = inputSenderController.tickHistory[inputSenderController.tickTrack].input;
+            newTick2.tick = inputSenderController.tickHistory[inputSenderController.tickTrack].tick;
+            inputSenderController.tickHistory[inputSenderController.tickTrack] = newTick2;
+            liveController.currentPlayerState = newTick2.state;
         }
-        return projectionController.currentPlayerState;
+        
     }
 
     public void ProcessServerRequests(ServerEventRequest[] requests)
