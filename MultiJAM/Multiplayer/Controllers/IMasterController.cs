@@ -104,13 +104,16 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
                 inputSenderController.tickHistory[i] = newTick;
             }
 
-            TickModel<PSM, IM> newTick2 = new TickModel<PSM, IM>();
-            projectedState = projectionController.ProcessInput(inputSenderController.tickHistory[inputSenderController.tickTrack].input);
-            newTick2.state = CorrectPlayerState(inputSenderController.tickHistory[inputSenderController.tickTrack].state, projectedState);
-            newTick2.input = inputSenderController.tickHistory[inputSenderController.tickTrack].input;
-            newTick2.tick = inputSenderController.tickHistory[inputSenderController.tickTrack].tick;
-            inputSenderController.tickHistory[inputSenderController.tickTrack] = newTick2;
-            liveController.currentPlayerState = newTick2.state;
+            if (inputSenderController.tickHistory.ContainsKey(inputSenderController.tickTrack))
+            {
+                TickModel<PSM, IM> newTick2 = new TickModel<PSM, IM>();
+                projectedState = projectionController.ProcessInput(inputSenderController.tickHistory[inputSenderController.tickTrack].input);
+                newTick2.state = CorrectPlayerState(inputSenderController.tickHistory[inputSenderController.tickTrack].state, projectedState);
+                newTick2.input = inputSenderController.tickHistory[inputSenderController.tickTrack].input;
+                newTick2.tick = inputSenderController.tickTrack;
+                inputSenderController.tickHistory[inputSenderController.tickTrack] = newTick2;
+                liveController.currentPlayerState = newTick2.state;
+            }
         }
         
     }
