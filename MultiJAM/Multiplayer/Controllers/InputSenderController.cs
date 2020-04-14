@@ -6,7 +6,7 @@ public class InputSenderController<PSM, IM, PIM> : StreamSenderController<InputP
 {
     public IMasterController<PSM, IM, PIM> masterController;
     public Dictionary<int, TickModel<PSM, IM>> tickHistory = new Dictionary<int, TickModel<PSM, IM>>();
-    public int tickHistorySize=500;
+    public int tickHistorySize=50000;
     public int tickTrack;
 
     public StreamSenderConfigModel inputSenderConfig = new StreamSenderConfigModel {
@@ -36,8 +36,6 @@ public class InputSenderController<PSM, IM, PIM> : StreamSenderController<InputP
         tm.input = pi.inputData;
         tm.tick = tickTrack;
         AddToHistory(tm);
-
-        tickTrack++;
         return pi;
     }
 
@@ -51,6 +49,7 @@ public class InputSenderController<PSM, IM, PIM> : StreamSenderController<InputP
             tickHistory.Remove(tm.tick - tickHistorySize);
         }
 
+        tickTrack++;
     }
 
 
