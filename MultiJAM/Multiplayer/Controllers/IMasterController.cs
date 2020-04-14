@@ -37,6 +37,7 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
         liveController.initPlayer = psp.playerInit;
         isOwner = _isOwner;
         connectionId = psp.conId;
+        mirrorPlayer.isOwner = _isOwner;
         liveController.Initialize(psp.playerState, _isOwner, connectionId, this);
 
         if (isOwner)
@@ -97,6 +98,7 @@ public abstract class IMasterController<PSM,IM,PIM> : MonoBehaviour
                 TickModel<PSM, IM> newTick = new TickModel<PSM, IM>();
                 projectedState = projectionController.ProcessInput(inputSenderController.tickHistory[i].input);
                 newTick.state = CorrectPlayerState(inputSenderController.tickHistory[i].state, projectedState);
+                newTick.state = projectionController.ProcessInput(inputSenderController.tickHistory[i].input);
                 newTick.input = inputSenderController.tickHistory[i].input;
                 newTick.tick = inputSenderController.tickHistory[i].tick;
                 inputSenderController.tickHistory[i] = newTick;
