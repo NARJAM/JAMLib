@@ -12,7 +12,7 @@ public class InputReceiverController<PSM,IM, PIM> : StreamReceiverController<Inp
         bufferCountMaxout = 4,
         bufferCountMin = 0,
         bufferCountIdeal = 2,
-        predictionEnabled = false,
+        predictionEnabled = true,
         initialBufferCount = 2,
         gameAuth = GameAuth.Server,
         processMode = ProcessMode.Ideal
