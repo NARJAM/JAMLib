@@ -2,24 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-    public abstract class ITransportController<GSM, PSM, IM, PIM>
-    {
-        public abstract void JoinRoom(PIM initData, string gameAuth);
-        public abstract void SendToClients(string eventName, string dataString);
-        public abstract void SendToServer(string eventName, string dataString);
+public abstract class ITransportController<GSM, PSM, IM, PIM>
+{
+    public abstract void JoinRoom(PIM initData, string gameAuth, OnConnectedEvent onConnectedEvent);
+    public abstract void SendToClients(string eventName, string dataString);
+    public abstract void SendToServer(string eventName, string dataString);
 
-        public string connectionId;
-        Dictionary<string, DataReceiveEvent> onFromServerDic = new Dictionary<string, DataReceiveEvent>();
-        Dictionary<string, DataReceiveEvent> onFromClientDic = new Dictionary<string, DataReceiveEvent>();
-        List<OnPlayerJoinedEvent> onPlayerJoinedList = new List<OnPlayerJoinedEvent>();
-        List<OnPlayerLeftEvent> onPlayerLeftList = new List<OnPlayerLeftEvent>();
+    public string connectionId;
+    Dictionary<string, DataReceiveEvent> onFromServerDic = new Dictionary<string, DataReceiveEvent>();
+    Dictionary<string, DataReceiveEvent> onFromClientDic = new Dictionary<string, DataReceiveEvent>();
+    List<OnPlayerJoinedEvent> onPlayerJoinedList = new List<OnPlayerJoinedEvent>();
+    List<OnPlayerLeftEvent> onPlayerLeftList = new List<OnPlayerLeftEvent>();
 
-        public delegate void DataReceiveEvent(string eventName, string connectionId, object eventData);
-        public delegate void OnConnectedEvent();
-        public delegate void OnPlayerJoinedEvent(string conId, string auth, PIM init);
-        public delegate void OnPlayerLeftEvent(string conId, string auth);
+    public delegate void DataReceiveEvent(string eventName, string connectionId, object eventData);
+    public delegate void OnConnectedEvent();
+    public delegate void OnPlayerJoinedEvent(string conId, string auth, PIM init);
+    public delegate void OnPlayerLeftEvent(string conId, string auth);
 
-        ISerializerController serializer;
+    ISerializerController serializer;
+
+        OnConnectedEvent onConnected;
+        public void IJoinRoom(PIM initData, string gameAuth, OnConnectedEvent onConnectedEvent)
+        {
+        JoinRoom(initData, gameAuth, onConnectedEvent);
+        }
 
         public void IOnFromServer(string eventName, DataReceiveEvent onNodeEvent)
         {
@@ -109,9 +115,14 @@ using UnityEngine;
                 onPlayerLeftList[i].Invoke(conId, gameAuth);
             }
         }
-        #endregion
 
-    }
+        public void OnConnected()
+        {
+            onConnected.Invoke();
+        }
+    #endregion
+
+}
 
     public enum GameAuth
     {

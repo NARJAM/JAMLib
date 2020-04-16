@@ -72,11 +72,11 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
     {
         if (MultiplayerController.gameAuth == GameAuth.Server)
         {
-            IMultiplayerController<GSM, PSM, IM, PIM>.instance.transportController.IOnFromClient(_onEventName, DataPackageReceived);
+            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IOnFromClient(_onEventName, DataPackageReceived);
         }
         else
         {
-            IMultiplayerController<GSM, PSM, IM, PIM>.instance.transportController.IOnFromServer(_onEventName, DataPackageReceived);
+            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IOnFromServer(_onEventName, DataPackageReceived);
         }
 
         if (pdpc != null)
@@ -88,7 +88,7 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
 
     public void FindDataToProcess()
     {
-        if (IMultiplayerController<GSM, PSM, IM, PIM>.instance.transportController.connectionId != "")
+        if (IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.connectionId != "")
         {
             streamRecieverLogModel.bufferCount = packageBuffer.Count;
 

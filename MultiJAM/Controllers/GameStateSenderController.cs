@@ -10,7 +10,7 @@ public class GameStateSenderController<GSM, PSM, IM, PIM> : StreamSenderControll
          gameAuth = GameAuth.Server,
     };
 
-    public GameStateSenderController() : base(IMultiplayerController<GSM, PSM, IM, PIM>.instance)
+    public GameStateSenderController() : base(IMultiplayerController<GSM, PSM, IM, PIM>.iinstance)
     {
         streamSenderConfig = gameStateSenderConfig;
     }

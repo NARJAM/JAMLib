@@ -7,14 +7,16 @@ using BestHTTP.SignalR.Messages;
 using System;
 using PlatformSupport.Collections.ObjectModel;
 
-public class SignalRController : ITransportController<GameStateModel, PlayerStateModel, PlayerInput, PlayerInitModel>
+public class SignalRController : ITransportController<GameStateModel, PlayerStateModel, PlayerInputModel, PlayerInitModel>
 {
     Connection signalRConnection;
     public string hubName="flow";
-    public string serverUrl;
+    public string serverUrl= "http://localhost:59474/";
 
-    public override void JoinRoom(PlayerInitModel initData,string gameAuth)
+    OnConnectedEvent onCon;
+    public override void JoinRoom(PlayerInitModel initData,string gameAuth,OnConnectedEvent _onCon)
     {
+        onCon = _onCon;
         Uri uri = new Uri(serverUrl + "signalr");
         signalRConnection = new Connection(uri, hubName);
 
@@ -25,10 +27,17 @@ public class SignalRController : ITransportController<GameStateModel, PlayerStat
         signalRConnection.AdditionalQueryParams = queryParams;
         signalRConnection.Open();
 
+        signalRConnection.OnConnected += OnConnected;
         signalRConnection[hubName].On("OnSessionJoined", OnPlayerJoined);
         signalRConnection[hubName].On("OnSessionLeft", OnPlayerLeft);
         signalRConnection[hubName].On("ReceiveFromClient", ReceiveFromClient);
         signalRConnection[hubName].On("ReceiveFromServer", ReceiveFromServer);
+    }
+
+    public void OnConnected(Connection con)
+    {
+        signalRConnection = con;
+        onCon.Invoke();
     }
 
     public override void SendToClients(string eventName, string dataString)

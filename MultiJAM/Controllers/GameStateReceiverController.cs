@@ -16,7 +16,7 @@ public class GameStateReceiverController<GSM, PSM, IM, PIM> : StreamReceiverCont
         processMode = ProcessMode.Ideal
 };
 
-    public GameStateReceiverController() : base(IMultiplayerController<GSM, PSM, IM, PIM>.instance)
+    public GameStateReceiverController() : base(IMultiplayerController<GSM, PSM, IM, PIM>.iinstance)
     {
         streamReceiverConfig = gameStateReceiverConfig;
     }

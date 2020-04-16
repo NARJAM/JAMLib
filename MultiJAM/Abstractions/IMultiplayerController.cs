@@ -5,7 +5,7 @@ using System;
 
 public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
 {
-    public static IMultiplayerController<GSM, PSM, IM, PIM> instance;
+    public static IMultiplayerController<GSM, PSM, IM, PIM> iinstance;
     GameStateSenderController<GSM, PSM, IM, PIM> stateStreamer;
     GameStateReceiverController<GSM,PSM,IM, PIM> stateReceiver;
     public GameObject masterControllerPrefab;
@@ -25,7 +25,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
 
     private void Awake()
     {
-        instance = this;
+        iinstance = this;
     }
 
     void Start()
@@ -39,13 +39,13 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
 
     public void ConnectToMatch(PIM init) {
 
-        if (MultiplayerController.gameAuth == GameAuth.Server)
+        if (gameAuth == GameAuth.Server)
         {
-            InitializeServer();
+            InitializeServer(init, GameAuth.Server);
         }
         else
         {
-            InitializeClient();
+            InitializeClient(init, GameAuth.Client);
         }
     }
 
@@ -54,12 +54,14 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
         OnMatchConnected();
     }
 
-    void InitializeServer() {
+    void InitializeServer(PIM init, GameAuth auth) {
+        transportController.JoinRoom(init,auth.ToString(),OnMatchConnected);
         transportController.IOnPlayerJoined(PlayerJoined);
         stateStreamer = new GameStateSenderController<GSM, PSM, IM, PIM>();
     }
 
-    void InitializeClient() {
+    void InitializeClient(PIM init, GameAuth auth) {
+        transportController.JoinRoom(init, auth.ToString(), OnMatchConnected);
         transportController.IOnFromServer("start", OnStartMatch);
         stateReceiver =new GameStateReceiverController<GSM, PSM, IM, PIM>();
     }
@@ -95,7 +97,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
             GameObject g = Instantiate(masterControllerPrefab);
             IMasterController<GSM, PSM, IM, PIM> pu = g.GetComponent<IMasterController<GSM, PSM, IM, PIM>>();
             masterControllerDic[i] = pu;
-            if (MultiplayerController.gameAuth == GameAuth.Client)
+            if (gameAuth == GameAuth.Client)
             {
                 if (transportController.connectionId == players[i].conId)
                 {

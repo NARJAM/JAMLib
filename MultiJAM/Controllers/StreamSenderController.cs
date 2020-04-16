@@ -39,7 +39,7 @@ public abstract class StreamSenderController<OutgoingData, GSM, PSM, IM, PIM>
     public void SendDataPackageLoop()
     {
 
-        if (IMultiplayerController<GSM, PSM, IM, PIM>.instance.transportController.connectionId != "")
+        if (IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.connectionId != "")
         {
             DataInstance<OutgoingData> di = new DataInstance<OutgoingData>();
             di.data = GetData();
@@ -92,11 +92,11 @@ public abstract class StreamSenderController<OutgoingData, GSM, PSM, IM, PIM>
         //send it to transport
         if (MultiplayerController.gameAuth ==  GameAuth.Server)
         {
-            IMultiplayerController<GSM, PSM, IM, PIM>.instance.transportController.IEmitToClients(emitEventName, dataHistory);
+            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IEmitToClients(emitEventName, dataHistory);
         }
         else
         {
-            IMultiplayerController<GSM, PSM, IM, PIM>.instance.transportController.IEmitToServer(emitEventName, dataHistory);
+            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IEmitToServer(emitEventName, dataHistory);
         }
     }
 }
