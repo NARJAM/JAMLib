@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputSenderController<GSM, PSM, IM, PIM> : StreamSenderController<InputPack<IM>, GSM, PSM, IM, PIM>
+public class InputSenderController : StreamSenderController<InputPack>
 {
-    public Dictionary<int, TickModel<PSM, IM>> tickHistory = new Dictionary<int, TickModel<PSM, IM>>();
+    public Dictionary<int, TickModel> tickHistory = new Dictionary<int, TickModel>();
     public int tickHistorySize=50000;
     public int tickTrack;
 
@@ -14,24 +14,24 @@ public class InputSenderController<GSM, PSM, IM, PIM> : StreamSenderController<I
          gameAuth = GameAuth.Server,
     };
 
-    public IMasterController<GSM, PSM, IM, PIM> masterController;
-    public InputSenderController(IMasterController<GSM, PSM, IM, PIM> _masterController): base(_masterController)
+    public IMasterController masterController;
+    public InputSenderController(IMasterController _masterController): base(_masterController)
     {
-            masterController = _masterController;
-           streamSenderConfig = inputSenderConfig;
+        streamSenderConfig = inputSenderConfig;
+        masterController = _masterController;
     }
 
-    public override InputPack<IM> GetData()
+    public override InputPack GetData()
     {
-        InputPack<IM> pi = new InputPack<IM>();
-        pi.inputData = masterController.inputController.SampleInput();
-        pi.serverEventRequests = masterController.liveController.SampleServerRequests();
+        InputPack pi = new InputPack();
+       pi.inputData = masterController.inputController.SampleInput();
+       pi.serverEventRequests = masterController.liveController.SampleServerRequests();
         pi.tick = tickTrack;
-        PSM psm = masterController.liveController.ProcessPack(pi);
+        PlayerStateModel psm = masterController.liveController.ProcessPack(pi);
         masterController.ProcessServerRequests(pi.serverEventRequests);
         masterController.SetMirrorState(psm);
 
-        TickModel<PSM,IM> tm = new TickModel<PSM, IM>();
+        TickModel tm = new TickModel();
         tm.state = psm;
         tm.input = pi.inputData;
         tm.tick = tickTrack;
@@ -40,7 +40,7 @@ public class InputSenderController<GSM, PSM, IM, PIM> : StreamSenderController<I
     }
 
 
-    void AddToHistory(TickModel<PSM, IM> tm)
+    void AddToHistory(TickModel tm)
     {
         tickHistory.Add(tm.tick, tm);
 
@@ -53,12 +53,4 @@ public class InputSenderController<GSM, PSM, IM, PIM> : StreamSenderController<I
     }
 
 
-}
-
-[System.Serializable]
-public struct TickModel<PSM,IM>
-{
-    public int tick;
-    public IM input;
-    public PSM state;
 }

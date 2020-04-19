@@ -2,19 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class IPlayerController<GSM, PSM, IM, PIM> : MonoBehaviour
+public abstract class IPlayerController : MonoBehaviour
 {
-    public IMasterController<GSM, PSM, IM, PIM> masterController;
-    private PlayerStatePack<PSM, PIM> playerStatePack;
+    public IMasterController masterController;
+    private PlayerStatePack playerStatePack;
     public ServerEventRequest[] serverEvents = new ServerEventRequest[0];
 
-    public PSM currentPlayerState;
-    public PIM initPlayer;
+    public PlayerStateModel currentPlayerState;
+    public PlayerInitModel initPlayer;
     public bool isInitialized;
     public bool isOwner;
     int tick;
 
-    public void Initialize(PSM initialState,bool _isOwner, string connectionId, IMasterController<GSM, PSM, IM, PIM> _masterController)
+    public void Initialize(PlayerStateModel initialState,bool _isOwner, string connectionId, IMasterController _masterController)
     {
         isOwner = _isOwner;
         masterController = _masterController;
@@ -24,23 +24,23 @@ public abstract class IPlayerController<GSM, PSM, IM, PIM> : MonoBehaviour
         OnInitialize(initialState);
     }
 
-    public void SetState(PSM initialState) {
+    public void SetState(PlayerStateModel initialState) {
         currentPlayerState = initialState;
         OnInitialize(initialState);
     }
 
-    public PSM ProcessPack(InputPack<IM> inputPack) {
+    public PlayerStateModel ProcessPack(InputPack inputPack) {
         tick = inputPack.tick;
         return ProcessInput(inputPack.inputData);
     }
 
 
 
-    public abstract void OnInitialize(PSM initialState);
-    public abstract PSM ProcessInput(IM playerInput);
-    public abstract void ProcessServerEvents(int requestId, object requestData);
+    public abstract void OnInitialize(PlayerStateModel initialState);
+    public abstract PlayerStateModel ProcessInput(PlayerInputModel playerInput);
+    public abstract void ProcessServerEvents(int requestId, string requestData);
 
-    public void AddServerEventRequest(int requestId, object requestData)
+    public void AddServerEventRequest(int requestId, string requestData)
     {
         ServerEventRequest ser;
         if (serverEvents.Length <= requestId)
@@ -53,15 +53,21 @@ public abstract class IPlayerController<GSM, PSM, IM, PIM> : MonoBehaviour
             serverEvents = temp;
         }
 
-        if(serverEvents[requestId].requestInstances!=null)
+        if(serverEvents[requestId].requestMessages!=null)
         {
-            serverEvents[requestId].requestInstances.Add(requestData);
+            string[] temp = new string[serverEvents[requestId].requestMessages.Length + 1];
+            for (int i = 0; i < serverEvents[requestId].requestMessages.Length; i++)
+            {
+                temp[i] = serverEvents[requestId].requestMessages[i];
+            }
+            temp[temp.Length - 1] = requestData;
+            serverEvents[requestId].requestMessages = temp;
         }
         else
         {
             ser = new ServerEventRequest();
-            ser.requestInstances = new List<object>();
-            ser.requestInstances.Add(requestData);
+            ser.requestMessages = new string[1];
+            ser.requestMessages[0] = (requestData);
             serverEvents[requestId] = ser;
         }
     }
@@ -72,7 +78,7 @@ public abstract class IPlayerController<GSM, PSM, IM, PIM> : MonoBehaviour
         return temp;
     }
 
-    public PlayerStatePack<PSM, PIM> SamplePlayerState()
+    public PlayerStatePack SamplePlayerState()
     {
         playerStatePack.tick = tick;
         playerStatePack.playerState = currentPlayerState;

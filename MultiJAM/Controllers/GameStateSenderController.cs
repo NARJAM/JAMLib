@@ -2,32 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameStateSenderController<GSM, PSM, IM, PIM> : StreamSenderController<GameStatePack<GSM, PSM, PIM>, GSM, PSM, IM, PIM>
+public class GameStateSenderController : StreamSenderController<GameStatePack>
 {
     public StreamSenderConfigModel gameStateSenderConfig = new StreamSenderConfigModel {
          sendRate = 5,
-         historySize = 10,
+         historySize = 2,
          gameAuth = GameAuth.Server,
     };
 
-    public GameStateSenderController() : base(IMultiplayerController<GSM, PSM, IM, PIM>.iinstance)
+    public GameStateSenderController() : base(IMultiplayerController.iinstance)
     {
         streamSenderConfig = gameStateSenderConfig;
     }
 
-    public IMultiplayerController<GSM, PSM, IM, PIM> gameController;
-
-    public override GameStatePack<GSM, PSM, PIM> GetData()
+    public override GameStatePack GetData()
     {
         return GetGameState();
     }
      
-    public GameStatePack<GSM, PSM, PIM> GetGameState()
+    public GameStatePack GetGameState()
     {
-        GameStatePack <GSM,PSM, PIM> g = new GameStatePack<GSM, PSM, PIM>();
+        GameStatePack g = new GameStatePack();
 
-        g.playerStates = gameController.SamplePlayerStates();
-        g.gameState = gameController.SampleGameState();
+        g.playerStates = IMultiplayerController.iinstance.SamplePlayerStates();
+        g.gameState = IMultiplayerController.iinstance.SampleGameState();
         return g;
     }
 

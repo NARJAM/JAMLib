@@ -3,49 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
+public abstract class IMultiplayerController : MonoBehaviour
 {
-    public static IMultiplayerController<GSM, PSM, IM, PIM> iinstance;
-    GameStateSenderController<GSM, PSM, IM, PIM> stateStreamer;
-    GameStateReceiverController<GSM,PSM,IM, PIM> stateReceiver;
+    GameStateSenderController stateStreamer;
+    GameStateReceiverController stateReceiver;
     public GameObject masterControllerPrefab;
 
     public static GameAuth gameAuth;
 
-    public abstract void OnSpawnMatch(GSM gsm);
-    public abstract PSM GetSpawnPlayerState(int playerIndex);
-    public abstract GSM SampleGameState();
-    public abstract void SetGameState(GSM gsm);
+    public abstract void OnSpawnMatch(GameStateModel gsm);
+    public abstract PlayerStateModel GetSpawnPlayerState(int playerIndex);
+    public abstract GameStateModel SampleGameState();
+    public abstract void SetGameState(GameStateModel gsm);
     public abstract void OnMatchConnected();
     public abstract ISerializerController GetSerializer();
-    public abstract ITransportController<GSM, PSM, IM, PIM> GetTransportController();
+    public abstract ITransportController GetTransportController();
+
+    public static IMultiplayerController iinstance;
 
     public ISerializerController serializer;
-    public ITransportController<GSM, PSM, IM, PIM> transportController;
+    public ITransportController transportController;
 
-    private void Awake()
+    public IMultiplayerController()
     {
         iinstance = this;
-    }
-
-    void Start()
-    {
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
-
         serializer = GetSerializer();
         transportController = GetTransportController();
     }
 
-    public void ConnectToMatch(PIM init) {
-
+    public void ConnectToMatch(PlayerInitModel init) {
         if (gameAuth == GameAuth.Server)
         {
-            InitializeServer(init, GameAuth.Server);
+            InitializeServer(init, gameAuth);
         }
         else
         {
-            InitializeClient(init, GameAuth.Client);
+            InitializeClient(init, gameAuth);
         }
     }
 
@@ -54,24 +47,26 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
         OnMatchConnected();
     }
 
-    void InitializeServer(PIM init, GameAuth auth) {
+    void InitializeServer(PlayerInitModel init, GameAuth auth)
+    {
         transportController.JoinRoom(init,auth.ToString(),OnMatchConnected);
         transportController.IOnPlayerJoined(PlayerJoined);
-        stateStreamer = new GameStateSenderController<GSM, PSM, IM, PIM>();
     }
 
-    void InitializeClient(PIM init, GameAuth auth) {
+    void InitializeClient(PlayerInitModel init, GameAuth auth)
+    {
+        stateReceiver = new GameStateReceiverController();
+        stateReceiver.InitStreamReception("gameState");
         transportController.JoinRoom(init, auth.ToString(), OnMatchConnected);
         transportController.IOnFromServer("start", OnStartMatch);
-        stateReceiver =new GameStateReceiverController<GSM, PSM, IM, PIM>();
     }
 
-    public IMasterController<GSM, PSM, IM, PIM>[] masterControllerDic = new IMasterController<GSM, PSM, IM, PIM>[0];
-    public PlayerStatePack<PSM,PIM>[] playerInitDic = new PlayerStatePack<PSM, PIM>[0];
+    public IMasterController[] masterControllerDic = new IMasterController[0];
+    public PlayerStatePack[] playerInitDic = new PlayerStatePack[0];
 
-    public PlayerStatePack<PSM, PIM>[] SamplePlayerStates()
+    public PlayerStatePack[] SamplePlayerStates()
     {
-        PlayerStatePack<PSM, PIM>[] result = new PlayerStatePack<PSM, PIM>[masterControllerDic.Length];
+        PlayerStatePack[] result = new PlayerStatePack[masterControllerDic.Length];
 
         for(int i=0; i< masterControllerDic.Length; i++)
         {
@@ -81,21 +76,21 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
         return result;
     }
 
-    public void SpawnMatch(GameStatePack<GSM,PSM, PIM> startMatchData)
+    public void SpawnMatch(GameStatePack startMatchData)
     {
         SpawnPlayers(startMatchData.playerStates);
         OnSpawnMatch(startMatchData.gameState);
     }
 
-    public abstract GSM GetSpawnGameSate();
+    public abstract GameStateModel GetSpawnGameSate();
 
-    void SpawnPlayers(PlayerStatePack<PSM, PIM>[] players)
+    void SpawnPlayers(PlayerStatePack[] players)
     {
-        masterControllerDic = new IMasterController<GSM, PSM, IM, PIM>[players.Length];
+        masterControllerDic = new IMasterController[players.Length];
         for (int i=0; i<players.Length; i++)
         {
             GameObject g = Instantiate(masterControllerPrefab);
-            IMasterController<GSM, PSM, IM, PIM> pu = g.GetComponent<IMasterController<GSM, PSM, IM, PIM>>();
+            IMasterController pu = g.GetComponent<IMasterController>();
             masterControllerDic[i] = pu;
             if (gameAuth == GameAuth.Client)
             {
@@ -117,10 +112,10 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
 
     }
 
-    public void PlayerJoined(string conId, string auth,PIM init)
+    public void PlayerJoined(string conId, string auth,PlayerInitModel init)
     {
-        PlayerStatePack<PSM,PIM> ps = new PlayerStatePack <PSM, PIM>();
-        PlayerStatePack<PSM, PIM>[] newPI = new PlayerStatePack<PSM, PIM>[playerInitDic.Length + 1];
+        PlayerStatePack ps = new PlayerStatePack ();
+        PlayerStatePack[] newPI = new PlayerStatePack[playerInitDic.Length + 1];
         for(int i=0; i<playerInitDic.Length; i++)
         {
             newPI[i] = playerInitDic[i];
@@ -128,6 +123,7 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
 
         ps.playerState = GetSpawnPlayerState(playerInitDic.Length);
         ps.conId = conId;
+        Debug.Log("Conid " + conId);
         ps.playerInit = init;
         newPI[playerInitDic.Length] =ps;
         playerInitDic = newPI;
@@ -135,21 +131,29 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
 
     public void InitiateMatch()
     {
-        GameStatePack<GSM,PSM, PIM> smd = new GameStatePack<GSM,PSM, PIM>();
+        DataPackageHistory dh = new DataPackageHistory();
+        DataPackage dp = new DataPackage();
+        DataInstance di = new DataInstance();
+        GameStatePack smd = new GameStatePack();
         smd.gameState = GetSpawnGameSate();
         smd.playerStates = playerInitDic;
-        transportController.IEmitToClients("start", smd);
-        SpawnMatch(smd);
+        di.data = smd;
+        dp.dataStream = new DataInstance[1];
+        dp.dataStream[0] = di;
+        dh.dataPackageHistory = new DataPackage[1];
+        dh.dataPackageHistory[0] = (dp);
+        transportController.IEmitToClients("start", dh);
+        stateStreamer = new GameStateSenderController();
         stateStreamer.StartStream("gameState");
+        SpawnMatch(smd);
     }
 
-    public void OnStartMatch(string eventName, string connectionId, object eventData)
+    public void OnStartMatch(string eventName, string connectionId, DataPackageHistory eventData)
     {
-        SpawnMatch((GameStatePack<GSM, PSM, PIM>)eventData);
-        stateReceiver.StartReception("gameState");
+        SpawnMatch((GameStatePack)eventData.dataPackageHistory[0].dataStream[0].data);
     }
 
-    public void ProcessGameStatePack(GameStatePack<GSM, PSM, PIM> gameStateData)
+    public void ProcessGameStatePack(GameStatePack gameStateData)
     {
         for(int i=0; i<gameStateData.playerStates.Length; i++)
         {
@@ -164,33 +168,4 @@ public abstract class IMultiplayerController<GSM,PSM,IM,PIM> : MonoBehaviour
         }
         SetGameState(gameStateData.gameState);
     }
-}
-
-[Serializable]
-public struct PlayerStatePack<PSM,PIM>
-{
-    public int tick;
-    public string conId;
-    public PSM playerState;
-    public PIM playerInit;
-}
-
-
-public struct GameStatePack<GSM,PSM,PIM>
-{
-    public PlayerStatePack<PSM,PIM>[] playerStates;
-    public GSM gameState;
-}
-
-public struct InputPack<IM>
-{
-    public int tick;
-    public string connectionId;
-    public IM inputData;
-    public ServerEventRequest[] serverEventRequests;
-}
-
-public struct ServerEventRequest
-{
-    public List<object> requestInstances;
 }

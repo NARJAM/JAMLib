@@ -2,28 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class StreamReceiverController<IncomingDataModel, GSM, PSM, IM, PIM>
+public abstract class StreamReceiverController<IncomingDataModel>
 {
     public StreamReceiverConfigModel streamReceiverConfig;
     public StreamRecieverLogModel streamRecieverLogModel = new StreamRecieverLogModel {
-    packagesProcessed = 0,
     currentProcessSpeed=0.015,
     targetProcessSpeed=0.015,
     instancesProcessed=0,
-    lastPackageProcessedInitiated=0,
     packagesReceivedCount=0,
-    bufferCount=0,
-};
+    };
 
-public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dictionary<int, DataPackage<IncomingDataModel>>();
-    string onEventName;
-    public bool receptionMute;
+    public Dictionary<int, DataPackage> packageBuffer = new Dictionary<int, DataPackage>();
 
     public abstract void ProcessData(IncomingDataModel data);
-    public abstract DataPackage<IncomingDataModel> GetPredictedPackage(DataPackage<IncomingDataModel> data);
-
-    public DataInstance<IncomingDataModel> lastDataInstanceProcessed = new DataInstance<IncomingDataModel>();
-    public DataPackage<IncomingDataModel> lastPackageProcessed = new DataPackage<IncomingDataModel>();
+    public abstract void InitStreamReception(string eventName);
     public MonoBehaviour looper;
 
     public StreamReceiverController(MonoBehaviour _looper)
@@ -31,123 +23,35 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
         looper = _looper;
     }
 
-    bool firstDataPackReceived;
-    public void DataPackageReceived(string eventName, string connectionId, object eventData)
+    bool firstPackageReceived;
+    public void DataPackageReceived(string eventName, string connectionId, DataPackageHistory eventData)
     {
-        if (receptionMute)
-        {
-            return;
-        }
-
         streamRecieverLogModel.packagesReceivedCount++;
-        DataPackageHistory<IncomingDataModel> pack = (DataPackageHistory<IncomingDataModel>)eventData;
+        DataPackageHistory pack = eventData;
 
-        if (lastPackageProcessed.packageId == -1 && pack.dataPackageHistory.Count > 0 && !firstDataPackReceived)
+        if (!firstPackageReceived)
         {
-            firstDataPackReceived = true;
-            lastPackageProcessed = pack.dataPackageHistory[0];
+            firstPackageReceived = true;
+            packageProgress = pack.dataPackageHistory[0].packageId;
         }
 
-        for (int i = 0; i < pack.dataPackageHistory.Count; i++)
+        for (int i = 0; i < pack.dataPackageHistory.Length; i++)
         {
-            if ((!packageBuffer.ContainsKey(pack.dataPackageHistory[i].packageId)) && pack.dataPackageHistory[i].packageId > lastPackageProcessed.packageId)
+            if ((!packageBuffer.ContainsKey(pack.dataPackageHistory[i].packageId)) && pack.dataPackageHistory[i].packageId > packageProgress)
             {
-                if (currentPackageProcessed != null)
-                {
-                    if (pack.dataPackageHistory[i].packageId > currentPackageProcessed.packageId)
-                    {
-                        packageBuffer.Add(pack.dataPackageHistory[i].packageId, pack.dataPackageHistory[i]);
-                    }
-                }
-                else
-                {
-                    packageBuffer.Add(pack.dataPackageHistory[i].packageId, pack.dataPackageHistory[i]);
-                }
+                packageBuffer.Add(pack.dataPackageHistory[i].packageId, pack.dataPackageHistory[i]);
             }
         }
     }
 
     Coroutine pdpc;
-    public void StartReception(string _onEventName)
+    public void StartReception()
     {
-        if (MultiplayerController.gameAuth == GameAuth.Server)
-        {
-            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IOnFromClient(_onEventName, DataPackageReceived);
-        }
-        else
-        {
-            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IOnFromServer(_onEventName, DataPackageReceived);
-        }
-
         if (pdpc != null)
         {
             looper.StopCoroutine(pdpc);
         }
         pdpc = looper.StartCoroutine(ProcessDataPackageCor());
-    }
-
-    public void FindDataToProcess()
-    {
-        if (IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.connectionId != "")
-        {
-            streamRecieverLogModel.bufferCount = packageBuffer.Count;
-
-            if (streamRecieverLogModel.packagesReceivedCount > streamReceiverConfig.initialBufferCount)
-            {
-                //try to find package
-                if (packageBuffer.TryGetValue(lastPackageProcessed.packageId + 1, out currentPackageProcessed))
-                {
-                    //process found package 
-                    return;
-                }
-                else if (streamReceiverConfig.predictionEnabled)
-                {
-                    PredictDataPackage();
-                    return;
-                }
-            }
-        }
-    }
-     
-      
-    DataPackage<IncomingDataModel> currentPackageProcessed;
-    public int loopCount;
-
-    
-    public void ProcessDataPackageLoop()
-    {
-        loopCount++;
-        if (currentPackageProcessed == null)
-        {
-            FindDataToProcess();
-
-            if (currentPackageProcessed == null)
-            {
-                return;
-            }
-        }
-        streamRecieverLogModel.lastPackageProcessedInitiated = currentPackageProcessed.packageId;
-        if (currentPackageProcessed.dataStream.Count > 0) 
-        {
-            UpdateProcessMode();
-
-            for (int i = 0; i < (int)streamReceiverConfig.processMode; i++)
-            {
-                if (currentPackageProcessed.currentlyProcessed < (currentPackageProcessed.dataStream.Count-1) && currentPackageProcessed.dataStream.Count > 0)
-                {
-                    currentPackageProcessed.currentlyProcessed++;
-                    ProcessInstance(currentPackageProcessed.dataStream[currentPackageProcessed.currentlyProcessed].data);
-                }
-            }
-        }
-
-        if (currentPackageProcessed.currentlyProcessed == currentPackageProcessed.dataStream.Count - 1)
-        {
-            lastPackageProcessed = currentPackageProcessed;
-            packageBuffer.Remove(currentPackageProcessed.packageId);
-            streamRecieverLogModel.packagesProcessed++;
-            currentPackageProcessed = null;
-        }
     }
 
     void UpdateProcessMode() {
@@ -166,23 +70,43 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
             streamReceiverConfig.processMode = ProcessMode.Ideal;
         }
     }
-
-    IEnumerator ProcessDataPackageCor() {
+    
+    int packageProgress = -1;
+    IEnumerator ProcessDataPackageCor()
+    {
         while (true)
         {
-            ProcessDataPackageLoop();
-            yield return new WaitForFixedUpdate();
+            if (!firstPackageReceived || streamRecieverLogModel.packagesReceivedCount < streamReceiverConfig.initialBufferCount)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            else
+            {
+                DataPackage currentPackageProcessed = new DataPackage();
+                if (packageBuffer.TryGetValue(packageProgress + 1, out currentPackageProcessed))
+                {
+                    int i = 0;
+                    while(i< currentPackageProcessed.dataStream.Length) { 
+                        UpdateProcessMode();
+                        for (int j = 0; j < (int)streamReceiverConfig.processMode;j++)
+                        {
+                            if (i < currentPackageProcessed.dataStream.Length)
+                            {
+                                ProcessInstance((IncomingDataModel)currentPackageProcessed.dataStream[i].data);
+                                i++;
+                                yield return new WaitForFixedUpdate();
+                            }
+                        }
+                    }
+                    packageBuffer.Remove(currentPackageProcessed.packageId);
+                    packageProgress = currentPackageProcessed.packageId;
+                }
+                else
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+            }
         }
-    }
-
-    public void PredictDataPackage()
-    {
-        DataPackage<IncomingDataModel> predictedPackage = new DataPackage<IncomingDataModel>();
-        predictedPackage.dataStream = lastPackageProcessed.dataStream;
-        predictedPackage.packageId = (lastPackageProcessed.packageId + 1);
-
-        predictedPackage = GetPredictedPackage(predictedPackage);
-        currentPackageProcessed = predictedPackage;
     }
 
     public void ProcessInstance(IncomingDataModel dataInstance)
@@ -195,13 +119,10 @@ public Dictionary<int, DataPackage<IncomingDataModel>> packageBuffer = new Dicti
 [System.Serializable]
 public struct StreamRecieverLogModel
 {
-    public int packagesProcessed;
     public double currentProcessSpeed;
     public double targetProcessSpeed;
     public int instancesProcessed;
-    public int lastPackageProcessedInitiated;
     public int packagesReceivedCount;
-    public int bufferCount;
 }
 
 public enum ProcessMode{

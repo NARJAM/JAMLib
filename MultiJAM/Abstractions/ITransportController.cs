@@ -2,32 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ITransportController<GSM, PSM, IM, PIM>
+public abstract class ITransportController
 {
-    public abstract void JoinRoom(PIM initData, string gameAuth, OnConnectedEvent onConnectedEvent);
+    public abstract void JoinRoom(PlayerInitModel initData, string gameAuth, OnConnectedEvent onConnectedEvent);
     public abstract void SendToClients(string eventName, string dataString);
     public abstract void SendToServer(string eventName, string dataString);
 
     public string connectionId;
-    Dictionary<string, DataReceiveEvent> onFromServerDic = new Dictionary<string, DataReceiveEvent>();
-    Dictionary<string, DataReceiveEvent> onFromClientDic = new Dictionary<string, DataReceiveEvent>();
+    Dictionary<string, DataReceiveFromServerEvent> onFromServerDic = new Dictionary<string, DataReceiveFromServerEvent>();
+    Dictionary<string, DataReceiveFromClientEvent> onFromClientDic = new Dictionary<string, DataReceiveFromClientEvent>();
     List<OnPlayerJoinedEvent> onPlayerJoinedList = new List<OnPlayerJoinedEvent>();
     List<OnPlayerLeftEvent> onPlayerLeftList = new List<OnPlayerLeftEvent>();
 
-    public delegate void DataReceiveEvent(string eventName, string connectionId, object eventData);
+    public delegate void DataReceiveFromServerEvent(string eventName, string connectionId,  DataPackageHistory  eventData);
+    public delegate void DataReceiveFromClientEvent(string eventName, string connectionId, DataPackageHistory eventData);
+   
     public delegate void OnConnectedEvent();
-    public delegate void OnPlayerJoinedEvent(string conId, string auth, PIM init);
-    public delegate void OnPlayerLeftEvent(string conId, string auth);
+    public delegate void OnPlayerJoinedEvent(string conId, string auth, PlayerInitModel init);
+    public delegate void OnPlayerLeftEvent(string conId);
 
-    ISerializerController serializer;
-
-        OnConnectedEvent onConnected;
-        public void IJoinRoom(PIM initData, string gameAuth, OnConnectedEvent onConnectedEvent)
+    
+        public void IJoinRoom(PlayerInitModel initData, string gameAuth, OnConnectedEvent onConnectedEvent)
         {
         JoinRoom(initData, gameAuth, onConnectedEvent);
         }
 
-        public void IOnFromServer(string eventName, DataReceiveEvent onNodeEvent)
+        public void IOnFromServer(string eventName, DataReceiveFromServerEvent onNodeEvent)
         {
             if (onFromServerDic.ContainsKey(eventName))
             {
@@ -37,7 +37,7 @@ public abstract class ITransportController<GSM, PSM, IM, PIM>
             onFromServerDic.Add(eventName, onNodeEvent);
         }
 
-        public void IOnFromClient(string eventName, DataReceiveEvent onNodeEvent)
+        public void IOnFromClient(string eventName, DataReceiveFromClientEvent onNodeEvent)
         {
             if (onFromClientDic.ContainsKey(eventName))
             {
@@ -52,7 +52,12 @@ public abstract class ITransportController<GSM, PSM, IM, PIM>
             onPlayerJoinedList.Add(onNodeEvent);
         }
 
-        public void IOnPlayerLeft(OnPlayerLeftEvent onNodeEvent)
+        public void IOnSelfJoined(OnPlayerJoinedEvent onNodeEvent)
+        {
+        onPlayerJoinedList.Add(onNodeEvent);
+        }
+
+    public void IOnPlayerLeft(OnPlayerLeftEvent onNodeEvent)
         {
             onPlayerLeftList.Add(onNodeEvent);
         }
@@ -69,19 +74,19 @@ public abstract class ITransportController<GSM, PSM, IM, PIM>
 
         public void IEmitToClients(string eventName, object eventData)
         {
-            SendToClients(eventName, serializer.Serialize(eventData));
+            SendToClients(eventName,IMultiplayerController.iinstance.serializer.Serialize(eventData));
         }
 
         public void IEmitToServer(string eventName, object eventData)
         {
-            SendToServer(eventName, serializer.Serialize(eventData));
+            SendToServer(eventName, IMultiplayerController.iinstance.serializer.Serialize(eventData));
         }
 
         #region AutoResponses
         public void ReceiveFromClient(string eventName, string connectionId, string eventData)
         {
-            DataReceiveEvent callback;
-            object eventObj = serializer.Deserialize(eventData);
+            DataReceiveFromClientEvent callback;
+            DataPackageHistory eventObj = (DataPackageHistory)IMultiplayerController.iinstance.serializer.Deserialize(eventData);
 
             if (onFromClientDic.TryGetValue(eventName, out callback))
             {
@@ -91,16 +96,15 @@ public abstract class ITransportController<GSM, PSM, IM, PIM>
 
         public void ReceiveFromServer(string eventName, string connectionId, string eventData)
         {
-            DataReceiveEvent callback;
-            object eventObj = serializer.Deserialize(eventData);
-
+            DataReceiveFromServerEvent callback;
+            DataPackageHistory eventObj = (DataPackageHistory)IMultiplayerController.iinstance.serializer.Deserialize (eventData);
             if (onFromServerDic.TryGetValue(eventName, out callback))
             {
                 callback.Invoke(eventName, connectionId, eventObj);
             }
         }
 
-        public void OnPlayerJoined(string conId, string gameAuth, PIM initData)
+        public void OnPlayerJoined(string conId, string gameAuth, PlayerInitModel initData)
         {
             for (int i = 0; i < onPlayerJoinedList.Count; i++)
             {
@@ -108,18 +112,14 @@ public abstract class ITransportController<GSM, PSM, IM, PIM>
             }
         }
 
-        public void OnPlayerLeft(string conId, string gameAuth)
+        public void OnPlayerLeft(string conId)
         {
             for (int i = 0; i < onPlayerJoinedList.Count; i++)
             {
-                onPlayerLeftList[i].Invoke(conId, gameAuth);
+                onPlayerLeftList[i].Invoke(conId);
             }
         }
 
-        public void OnConnected()
-        {
-            onConnected.Invoke();
-        }
     #endregion
 
 }

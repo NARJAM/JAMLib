@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public abstract class StreamSenderController<OutgoingData, GSM, PSM, IM, PIM>
+public abstract class StreamSenderController<OutgoingData>
 {
     [Header("Config")]
-    public List<DataPackage<OutgoingData>> packageHistory = new List<DataPackage<OutgoingData>>();
+    public List<DataPackage> packageHistory = new List<DataPackage>();
     public StreamSenderConfigModel streamSenderConfig;
     string emitEventName;
     public bool sendMute;
@@ -22,56 +22,45 @@ public abstract class StreamSenderController<OutgoingData, GSM, PSM, IM, PIM>
     }
 
     public abstract OutgoingData GetData();
-
     Coroutine sdpc;
     public void StartStream(string eventName)
     {
+        Debug.Log("StartStream " + eventName);
         emitEventName = eventName;
-
         if (sdpc != null)
         {
             looper.StopCoroutine(sdpc);
         }
-        sdpc = looper.StartCoroutine(SendDataPackageCor());
+       sdpc = looper.StartCoroutine(SendDataPackageCor());
     }
 
-    DataPackage<OutgoingData> currentPackageSend = new DataPackage<OutgoingData>();
-    public void SendDataPackageLoop()
-    {
-
-        if (IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.connectionId != "")
-        {
-            DataInstance<OutgoingData> di = new DataInstance<OutgoingData>();
-            di.data = GetData();
-            di.instanceId = instancesSentCount;
-            instancesSentCount++;
-            currentPackageSend.dataStream.Add(di);
-
-            if (currentPackageSend.dataStream.Count == streamSenderConfig.sendRate)
-            {
-                currentPackageSend.packageId = packagesSentCount;
-                packagesSentCount++;
-                SendDataPackage(currentPackageSend);
-                currentPackageSend.dataStream.Clear();
-            }
-        }
-    }
 
     IEnumerator SendDataPackageCor()
     {
         while (true)
         {
-            SendDataPackageLoop();
-            yield return new WaitForFixedUpdate();
+            DataPackage currentPackageSend = new DataPackage();
+            List<DataInstance> dataStreamCache = new List<DataInstance>();
+
+            for (int i=0; i<= streamSenderConfig.sendRate; i++)
+            {
+                DataInstance di = new DataInstance();
+                di.data = GetData();
+                di.instanceId = instancesSentCount;
+                instancesSentCount++;
+                dataStreamCache.Add(di);
+                yield return new WaitForFixedUpdate();
+            }
+
+            currentPackageSend.packageId = packagesSentCount;
+            packagesSentCount++;
+            currentPackageSend.dataStream = dataStreamCache.ToArray();
+            SendDataPackage(currentPackageSend);
         }
     }
 
-    public void SendDataPackage(DataPackage<OutgoingData> livePackage)
+    public void SendDataPackage(DataPackage livePackage)
     {
-        if (sendMute)
-        {
-            return;
-        }
         //update history
         if (packageHistory.Count < streamSenderConfig.historySize)
         {
@@ -87,37 +76,17 @@ public abstract class StreamSenderController<OutgoingData, GSM, PSM, IM, PIM>
         }
 
         //create final package with history added
-        DataPackageHistory<OutgoingData> dataHistory = new DataPackageHistory<OutgoingData>();
-        dataHistory.dataPackageHistory.AddRange(packageHistory);
+        DataPackageHistory dataHistory = new DataPackageHistory();
+        dataHistory.dataPackageHistory = (packageHistory).ToArray();
+        
         //send it to transport
-        if (MultiplayerController.gameAuth ==  GameAuth.Server)
+        if (IMultiplayerController.gameAuth ==  GameAuth.Server)
         {
-            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IEmitToClients(emitEventName, dataHistory);
+            IMultiplayerController.iinstance.transportController.IEmitToClients(emitEventName, dataHistory);
         }
         else
         {
-            IMultiplayerController<GSM, PSM, IM, PIM>.iinstance.transportController.IEmitToServer(emitEventName, dataHistory);
+            IMultiplayerController.iinstance.transportController.IEmitToServer(emitEventName, dataHistory);
         }
     }
-}
-
-[Serializable]
-public class DataInstance<T>
-{
-    public T data;
-    public int instanceId;
-}
-
-[Serializable]
-public class DataPackage<T>
-{
-    public List<DataInstance<T>> dataStream = new List<DataInstance<T>>();
-    public int packageId;
-    public int currentlyProcessed = -1;
-}
-
-[Serializable]
-public class DataPackageHistory<T>
-{
-    public List<DataPackage<T>> dataPackageHistory = new List<DataPackage<T>>();
 }

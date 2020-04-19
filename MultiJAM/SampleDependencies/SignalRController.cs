@@ -7,7 +7,7 @@ using BestHTTP.SignalR.Messages;
 using System;
 using PlatformSupport.Collections.ObjectModel;
 
-public class SignalRController : ITransportController<GameStateModel, PlayerStateModel, PlayerInputModel, PlayerInitModel>
+public class SignalRController : ITransportController
 {
     Connection signalRConnection;
     public string hubName="flow";
@@ -28,6 +28,7 @@ public class SignalRController : ITransportController<GameStateModel, PlayerStat
         signalRConnection.Open();
 
         signalRConnection.OnConnected += OnConnected;
+        signalRConnection[hubName].On("OnSelfJoined", OnSelfJoined);
         signalRConnection[hubName].On("OnSessionJoined", OnPlayerJoined);
         signalRConnection[hubName].On("OnSessionLeft", OnPlayerLeft);
         signalRConnection[hubName].On("ReceiveFromClient", ReceiveFromClient);
@@ -50,6 +51,14 @@ public class SignalRController : ITransportController<GameStateModel, PlayerStat
         signalRConnection[hubName].Call("SendToServer", eventName, dataString);
     }
 
+    void OnSelfJoined(Hub hub, MethodCallMessage msg)
+    {
+        string conId = msg.Arguments[0].ToString();
+
+        Debug.Log("On Self Joined" + conId);
+        base.connectionId = conId;
+    }
+
     void OnPlayerJoined(Hub hub, MethodCallMessage msg)
     {
         string conId = msg.Arguments[0].ToString();
@@ -64,9 +73,8 @@ public class SignalRController : ITransportController<GameStateModel, PlayerStat
     void OnPlayerLeft(Hub hub, MethodCallMessage msg)
     {
         string conId = msg.Arguments[0].ToString();
-        string gameAuth = msg.Arguments[1].ToString();
 
-        base.OnPlayerLeft(conId, gameAuth);
+        base.OnPlayerLeft(conId);
     }
 
     void ReceiveFromClient(Hub hub, MethodCallMessage msg)
@@ -74,7 +82,6 @@ public class SignalRController : ITransportController<GameStateModel, PlayerStat
         string eventName = msg.Arguments[0].ToString();
         string connectionId = msg.Arguments[1].ToString();
         string eventData = msg.Arguments[2].ToString();
-
         base.ReceiveFromClient(eventName, connectionId, eventData);
     }
 
@@ -83,7 +90,6 @@ public class SignalRController : ITransportController<GameStateModel, PlayerStat
         string eventName = msg.Arguments[0].ToString();
         string connectionId = msg.Arguments[1].ToString();
         string eventData = msg.Arguments[2].ToString();
-
         base.ReceiveFromServer(eventName, connectionId, eventData);
     }
 
