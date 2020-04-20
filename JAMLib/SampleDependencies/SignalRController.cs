@@ -12,15 +12,13 @@ namespace JAMLib
     public class SignalRController : ITransportController
     {
         Connection signalRConnection;
-        public string hubName = "flow";
-        public string serverUrl = "http://localhost:59474/";
 
         OnJoinedRoom onCon;
         public override void JoinRoom(PlayerInitModel initData, string gameAuth, OnJoinedRoom _onCon)
         {
             onCon = _onCon;
-            Uri uri = new Uri(serverUrl + "signalr");
-            signalRConnection = new Connection(uri, hubName);
+            Uri uri = new Uri(IMultiplayerController.config.serverUrl + "signalr");
+            signalRConnection = new Connection(uri, IMultiplayerController.config.hubName);
 
             ObservableDictionary<string, string> queryParams = new ObservableDictionary<string, string>();
             queryParams.Add("gameAuth", gameAuth);
@@ -30,11 +28,11 @@ namespace JAMLib
             signalRConnection.Open();
 
             signalRConnection.OnConnected += OnConnected;
-            signalRConnection[hubName].On("OnSelfJoined", OnSelfJoined);
-            signalRConnection[hubName].On("OnSessionJoined", OnPlayerJoined);
-            signalRConnection[hubName].On("OnSessionLeft", OnPlayerLeft);
-            signalRConnection[hubName].On("ReceiveFromClient", ReceiveFromClient);
-            signalRConnection[hubName].On("ReceiveFromServer", ReceiveFromServer);
+            signalRConnection[IMultiplayerController.config.hubName].On("OnSelfJoined", OnSelfJoined);
+            signalRConnection[IMultiplayerController.config.hubName].On("OnSessionJoined", OnPlayerJoined);
+            signalRConnection[IMultiplayerController.config.hubName].On("OnSessionLeft", OnPlayerLeft);
+            signalRConnection[IMultiplayerController.config.hubName].On("ReceiveFromClient", ReceiveFromClient);
+            signalRConnection[IMultiplayerController.config.hubName].On("ReceiveFromServer", ReceiveFromServer);
         }
 
         public void OnConnected(Connection con)
@@ -45,12 +43,12 @@ namespace JAMLib
 
         public override void SendToClients(string eventName, string dataString)
         {
-            signalRConnection[hubName].Call("SendToClients", eventName, dataString);
+            signalRConnection[IMultiplayerController.config.hubName].Call("SendToClients", eventName, dataString);
         }
 
         public override void SendToServer(string eventName, string dataString)
         {
-            signalRConnection[hubName].Call("SendToServer", eventName, dataString);
+            signalRConnection[IMultiplayerController.config.hubName].Call("SendToServer", eventName, dataString);
         }
 
         void OnSelfJoined(Hub hub, MethodCallMessage msg)

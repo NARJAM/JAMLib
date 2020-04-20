@@ -5,6 +5,7 @@ using System;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
+using OdinSerializer;
 
 namespace JAMLib
 {
@@ -15,13 +16,13 @@ namespace JAMLib
         {
 
             string decomstring = DecompressString(dataString);
-            object eventObj = Sirenix.Serialization.SerializationUtility.DeserializeValue<object>(Convert.FromBase64String(decomstring), Sirenix.Serialization.DataFormat.Binary);
+            object eventObj = SerializationUtility.DeserializeValue<object>(Convert.FromBase64String(decomstring), DataFormat.Binary);
             return eventObj;
         }
 
         public override string Serialize(object data)
         {
-            string originalString = Convert.ToBase64String(Sirenix.Serialization.SerializationUtility.SerializeValue<object>(data, Sirenix.Serialization.DataFormat.Binary));
+            string originalString = Convert.ToBase64String(SerializationUtility.SerializeValue<object>(data, DataFormat.Binary));
             string dataStringCom = CompressString(originalString);
             string decomstring = DecompressString(dataStringCom);
             return dataStringCom;

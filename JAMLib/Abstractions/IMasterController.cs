@@ -15,11 +15,6 @@ namespace JAMLib
         public PlayerStateModel projectedState;
         public PlayerStateModel pastState;
         public ITransportController transportController;
-
-        public GameObject liveControllerObj;
-        public GameObject inputControllerObj;
-        public GameObject mirrorPlayerObj;
-
         public bool isOwner;
         public string connectionId;
 
@@ -28,9 +23,6 @@ namespace JAMLib
         public void Initialize(ITransportController _transportController, PlayerStatePack psp, bool _isOwner)
         {
             transportController = _transportController;
-            liveController = liveControllerObj.GetComponent<IPlayerController>();
-            inputController = inputControllerObj.GetComponent<IInputController>();
-            mirrorPlayer = mirrorPlayerObj.GetComponent<IPlayerView>();
             liveController.initPlayer = psp.playerInit;
             isOwner = _isOwner;
             connectionId = psp.conId;

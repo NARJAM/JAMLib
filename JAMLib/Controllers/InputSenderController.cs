@@ -9,17 +9,10 @@ namespace JAMLib
         public int tickHistorySize = 50000;
         public int tickTrack;
 
-        public StreamSenderConfigModel inputSenderConfig = new StreamSenderConfigModel
-        {
-            sendRate = 5,
-            historySize = 10,
-            gameAuth = GameAuth.Server,
-        };
-
         public IMasterController masterController;
         public InputSenderController(IMasterController _masterController) : base(_masterController)
         {
-            streamSenderConfig = inputSenderConfig;
+            streamSenderConfig = IMultiplayerController.config.inputSenderConfig;
             masterController = _masterController;
         }
 

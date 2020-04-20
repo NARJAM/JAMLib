@@ -18,7 +18,7 @@ namespace JAMLib
         public abstract WorldStateModel SampleWorldState();
         public abstract void SetWorldState(WorldStateModel gsm);
         public abstract void OnMatchConnected();
-
+        public static Config config;
         public static IMultiplayerController m_instance;
 
         public ISerializerController serializer;

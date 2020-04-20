@@ -7,20 +7,9 @@ namespace JAMLib
     {
         public IMasterController masterController;
 
-        public StreamReceiverConfigModel inputReceiverConfig = new StreamReceiverConfigModel
-        {
-            isFlexibleProcessing = true,
-            bufferCountMaxout = 4,
-            bufferCountMin = 0,
-            bufferCountIdeal = 2,
-            initialBufferCount = 2,
-            gameAuth = GameAuth.Server,
-            processMode = ProcessMode.Ideal
-        };
-
         public InputReceiverController(IMasterController _masterController) : base(_masterController)
         {
-            streamReceiverConfig = inputReceiverConfig;
+            streamReceiverConfig = IMultiplayerController.config.inputReceiverConfig;
             masterController = _masterController;
         }
 
