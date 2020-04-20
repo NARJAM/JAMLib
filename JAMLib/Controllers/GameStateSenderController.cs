@@ -6,16 +6,9 @@ namespace JAMLib
 {
     public class GameStateSenderController : StreamSenderController<ServerMessagePack>
     {
-        public StreamSenderConfigModel gameStateSenderConfig = new StreamSenderConfigModel
-        {
-            sendRate = 5,
-            historySize = 2,
-            gameAuth = GameAuth.Server,
-        };
-
         public GameStateSenderController() : base(IMultiplayerController.m_instance)
         {
-            streamSenderConfig = gameStateSenderConfig;
+            streamSenderConfig = IMultiplayerController.config.gameStateSenderConfig;
         }
 
         public override ServerMessagePack GetData()
