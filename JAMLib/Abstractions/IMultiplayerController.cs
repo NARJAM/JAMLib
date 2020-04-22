@@ -27,6 +27,7 @@ namespace JAMLib
         public IMultiplayerController()
         {
             m_instance = this;
+            config = new Config();
             serializer = new OdinSerializerController();
             transportController = new SignalRController();
         }

@@ -116,7 +116,7 @@ namespace JAMLib
 
         public void OnPlayerLeft(string conId)
         {
-            for (int i = 0; i < onPlayerJoinedList.Count; i++)
+            for (int i = 0; i < onPlayerLeftList.Count; i++)
             {
                 onPlayerLeftList[i].Invoke(conId);
             }

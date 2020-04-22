@@ -17,6 +17,7 @@ namespace JAMLib
 
             string decomstring = DecompressString(dataString);
             object eventObj = SerializationUtility.DeserializeValue<object>(Convert.FromBase64String(decomstring), DataFormat.Binary);
+           // Debug.Log("InData " + dataString.Length);
             return eventObj;
         }
 
@@ -24,7 +25,7 @@ namespace JAMLib
         {
             string originalString = Convert.ToBase64String(SerializationUtility.SerializeValue<object>(data, DataFormat.Binary));
             string dataStringCom = CompressString(originalString);
-            string decomstring = DecompressString(dataStringCom);
+          //  Debug.Log("OutData " + dataStringCom.Length);
             return dataStringCom;
         }
 
