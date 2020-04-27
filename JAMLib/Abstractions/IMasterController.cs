@@ -66,6 +66,7 @@ namespace JAMLib
                 OnPastStateSet(pastState);
                 if (CheckForCorrection(psp.playerState, pastTick.state, pastTick.tick))
                 {
+                    Debug.Log("Correction Needed");
                     ProjectState(psp);
                 }
             }
