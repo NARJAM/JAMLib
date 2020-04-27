@@ -6,11 +6,11 @@ namespace JAMLib
     public abstract class IPlayerController : MonoBehaviour
     {
         public IMasterController masterController;
-        private PlayerStatePack playerStatePack;
-        public ServerEventRequest[] serverEvents = new ServerEventRequest[0];
+        private PlayerStatePack playerStatePack = new PlayerStatePack();
+        public ServerEventRequestModel serverEvents = new ServerEventRequestModel();
 
-        public PlayerStateModel currentPlayerState;
-        public PlayerInitModel initPlayer;
+        public PlayerStateModel currentPlayerState = new PlayerStateModel();
+        public PlayerInitModel initPlayer = new PlayerInitModel();
         public bool isInitialized;
         public bool isOwner;
         int tick;
@@ -23,6 +23,9 @@ namespace JAMLib
             isInitialized = true;
             currentPlayerState = initialState;
             OnInitialize(initialState);
+
+            serverEvents = new ServerEventRequestModel();
+            serverEvents.Init();
         }
 
         public void SetState(PlayerStateModel initialState)
@@ -45,41 +48,15 @@ namespace JAMLib
 
         public void AddServerEventRequest(int requestId, string requestData)
         {
-            ServerEventRequest ser;
-            if (serverEvents.Length <= requestId)
-            {
-                ServerEventRequest[] temp = new ServerEventRequest[requestId + 1];
-                for (int i = 0; i < serverEvents.Length; i++)
-                {
-                    temp[i] = serverEvents[i];
-                }
-                serverEvents = temp;
-            }
-
-            if (serverEvents[requestId].requestMessages != null)
-            {
-                string[] temp = new string[serverEvents[requestId].requestMessages.Length + 1];
-                for (int i = 0; i < serverEvents[requestId].requestMessages.Length; i++)
-                {
-                    temp[i] = serverEvents[requestId].requestMessages[i];
-                }
-                temp[temp.Length - 1] = requestData;
-                serverEvents[requestId].requestMessages = temp;
-            }
-            else
-            {
-                ser = new ServerEventRequest();
-                ser.requestMessages = new string[1];
-                ser.requestMessages[0] = (requestData);
-                serverEvents[requestId] = ser;
-            }
+            serverEvents.serverEventRequests[requestId].requestMessages.Add(requestData);
         }
 
-        public ServerEventRequest[] SampleServerRequests()
+        public ServerEventRequestModel SampleServerRequests()
         {
-            ServerEventRequest[] temp = serverEvents;
-            serverEvents = new ServerEventRequest[1];
-            return temp;
+            ServerEventRequestModel qwe = serverEvents;
+            serverEvents = new ServerEventRequestModel();
+            serverEvents.Init();
+            return qwe;
         }
 
         public PlayerStatePack SamplePlayerState()

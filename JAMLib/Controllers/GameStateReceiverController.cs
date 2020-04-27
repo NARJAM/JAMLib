@@ -6,7 +6,7 @@ namespace JAMLib
 {
     public class GameStateReceiverController : StreamReceiverController<ServerMessagePack>
     {
-        public GameStateReceiverController() : base(IMultiplayerController.m_instance)
+        public GameStateReceiverController() : base(IMultiplayerController.m_instance, new ServerMessagePack())
         {
             streamReceiverConfig = IMultiplayerController.config.gameStateReceiverConfig;
 

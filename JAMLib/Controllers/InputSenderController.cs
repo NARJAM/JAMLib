@@ -20,10 +20,10 @@ namespace JAMLib
         {
             ClientMessagePack pi = new ClientMessagePack();
             pi.inputData = masterController.inputController.SampleInput();
-            pi.serverEventRequests = masterController.liveController.SampleServerRequests();
+            pi.serverEventRequestModel = masterController.liveController.SampleServerRequests();
             pi.tick = tickTrack;
             PlayerStateModel psm = masterController.liveController.ProcessPack(pi);
-            masterController.ProcessServerRequests(pi.serverEventRequests);
+            masterController.ProcessServerRequests(pi.serverEventRequestModel);
             masterController.SetMirrorState(psm);
 
             TickModel tm = new TickModel();

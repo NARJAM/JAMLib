@@ -24,16 +24,18 @@ namespace JAMLib
         public ISerializerController serializer;
         public ITransportController transportController;
 
-        public IMultiplayerController()
+        public void Init()
         {
+            Debug.Log("INNITED");
             m_instance = this;
             config = new Config();
-            serializer = new OdinSerializerController();
+            serializer = new CerasSerializerController();
             transportController = new SignalRController();
         }
 
         public void ConnectToMatch(PlayerInitModel init)
         {
+            Init();
             if (gameAuth == GameAuth.Server)
             {
                 InitializeServer(init, gameAuth);
@@ -51,6 +53,8 @@ namespace JAMLib
 
         void InitializeServer(PlayerInitModel init, GameAuth auth)
         {
+            transportController = new SignalRController();
+            serializer = new CerasSerializerController();
             transportController.JoinRoom(init, auth.ToString(), OnMatchConnected);
             transportController.IOnPlayerJoined(PlayerJoined);
         }
@@ -63,16 +67,16 @@ namespace JAMLib
             transportController.IOnFromServer("start", OnStartMatch);
         }
 
-        public IMasterController[] masterControllerDic = new IMasterController[0];
-        public PlayerStatePack[] playerInitDic = new PlayerStatePack[0];
+        public List<IMasterController> masterControllerDic = new List<IMasterController>();
+        public List<PlayerStatePack> playerInitDic = new List<PlayerStatePack>();
 
-        public PlayerStatePack[] SamplePlayerStates()
+        public List<PlayerStatePack> SamplePlayerStates()
         {
-            PlayerStatePack[] result = new PlayerStatePack[masterControllerDic.Length];
+            List<PlayerStatePack> result = new List<PlayerStatePack>();
 
-            for (int i = 0; i < masterControllerDic.Length; i++)
+            for (int i = 0; i < masterControllerDic.Count; i++)
             {
-                result[i] = masterControllerDic[i].liveController.SamplePlayerState();
+                result.Add(masterControllerDic[i].liveController.SamplePlayerState());
             }
 
             return result;
@@ -86,14 +90,14 @@ namespace JAMLib
 
         public abstract WorldStateModel GetSpawnGameSate();
 
-        void SpawnPlayers(PlayerStatePack[] players)
+        void SpawnPlayers(List<PlayerStatePack> players)
         {
-            masterControllerDic = new IMasterController[players.Length];
-            for (int i = 0; i < players.Length; i++)
+            masterControllerDic = new List<IMasterController>();
+            for (int i = 0; i < players.Count; i++)
             {
                 GameObject g = Instantiate(masterControllerPrefab);
                 IMasterController pu = g.GetComponent<IMasterController>();
-                masterControllerDic[i] = pu;
+                masterControllerDic.Add(pu);
                 if (gameAuth == GameAuth.Client)
                 {
                     if (transportController.connectionId == players[i].conId)
@@ -117,18 +121,11 @@ namespace JAMLib
         public void PlayerJoined(string conId, string auth, PlayerInitModel init)
         {
             PlayerStatePack ps = new PlayerStatePack();
-            PlayerStatePack[] newPI = new PlayerStatePack[playerInitDic.Length + 1];
-            for (int i = 0; i < playerInitDic.Length; i++)
-            {
-                newPI[i] = playerInitDic[i];
-            }
-
-            ps.playerState = GetSpawnPlayerState(playerInitDic.Length);
+            ps.playerState = GetSpawnPlayerState(playerInitDic.Count);
             ps.conId = conId;
             Debug.Log("Conid " + conId);
             ps.playerInit = init;
-            newPI[playerInitDic.Length] = ps;
-            playerInitDic = newPI;
+            playerInitDic.Add(ps);
         }
 
         public void InitiateMatch()
@@ -138,26 +135,28 @@ namespace JAMLib
             DataInstance di = new DataInstance();
             ServerMessagePack smd = new ServerMessagePack();
             smd.worldState = GetSpawnGameSate();
-            smd.playerStates = playerInitDic;
-            di.data = smd;
-            dp.dataStream = new DataInstance[1];
-            dp.dataStream[0] = di;
-            dh.dataPackageHistory = new DataPackage[1];
-            dh.dataPackageHistory[0] = (dp);
-            transportController.IEmitToClients("start", dh);
+            smd.playerStates = new List<PlayerStatePack>(playerInitDic);
+            di.data = IMultiplayerController.m_instance.serializer.Serialize<ServerMessagePack>(smd);
+            dp.dataStream = new List<DataInstance>();
+            dp.dataStream.Add(di);
+            dh.dataPackageHistory = new List<DataPackage>();
+            dh.dataPackageHistory.Add(dp);
+            transportController.IEmitToClients<DataPackageHistory>("start", dh);
             stateStreamer = new GameStateSenderController();
             stateStreamer.StartStream("gameState");
             SpawnMatch(smd);
         }
 
+        ServerMessagePack startMatchData;
         public void OnStartMatch(string eventName, string connectionId, DataPackageHistory eventData)
         {
-            SpawnMatch((ServerMessagePack)eventData.dataPackageHistory[0].dataStream[0].data);
+            IMultiplayerController.m_instance.serializer.Deserialize<ServerMessagePack>(eventData.dataPackageHistory[0].dataStream[0].data, ref startMatchData);
+            SpawnMatch(startMatchData);
         }
 
         public void ProcessGameStatePack(ServerMessagePack gameStateData)
         {
-            for (int i = 0; i < gameStateData.playerStates.Length; i++)
+            for (int i = 0; i < gameStateData.playerStates.Count; i++)
             {
                 if (masterControllerDic[i].isOwner)
                 {

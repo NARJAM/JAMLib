@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Ceras.Formatters.AotGenerator;
 
 namespace JAMLib
 {
-    [Serializable]
+    [GenerateFormatter]
     public struct PlayerStatePack
     {
         public int tick;
@@ -14,29 +15,46 @@ namespace JAMLib
         public PlayerInitModel playerInit;
     }
 
-    [System.Serializable]
+    [GenerateFormatter]
     public struct ServerMessagePack
     {
-        public PlayerStatePack[] playerStates;
+        public List<PlayerStatePack> playerStates;
         public WorldStateModel worldState;
     }
 
-    [System.Serializable]
+    [GenerateFormatter]
     public struct ClientMessagePack
     {
         public int tick;
         public string connectionId;
         public PlayerInputModel inputData;
-        public ServerEventRequest[] serverEventRequests;
+        public ServerEventRequestModel serverEventRequestModel;
     }
 
-    [System.Serializable]
+    [GenerateFormatter]
+    public struct ServerEventRequestModel
+    {
+        public List<ServerEventRequest> serverEventRequests;
+
+        public void Init()
+        {
+            serverEventRequests = new List<ServerEventRequest>();
+            for (int i = 0; i < 1; i++)
+            {
+                ServerEventRequest ser = new ServerEventRequest();
+                ser.requestMessages = new List<string>();
+                this.serverEventRequests.Add(ser);
+            }
+        }
+    }
+
+    [GenerateFormatter]
     public struct ServerEventRequest
     {
-        public string[] requestMessages;
+        public List<string> requestMessages;
     }
 
-    [System.Serializable]
+    [GenerateFormatter]
     public struct TickModel
     {
         public int tick;
@@ -44,24 +62,23 @@ namespace JAMLib
         public PlayerStateModel state;
     }
 
-    [Serializable]
+    [GenerateFormatter]
     public struct DataInstance
     {
-        public object data;
+        public string data;
         public int instanceId;
     }
-
-    [Serializable]
+    [GenerateFormatter]
     public struct DataPackage
     {
-        public DataInstance[] dataStream;
+        public List<DataInstance> dataStream;
         public int packageId;
     }
 
-    [Serializable]
+    [GenerateFormatter]
     public struct DataPackageHistory
     {
-        public DataPackage[] dataPackageHistory;
+        public List<DataPackage> dataPackageHistory;
     }
 
     public enum GameAuth

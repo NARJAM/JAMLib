@@ -20,7 +20,7 @@ namespace JAMLib
         {
             ServerMessagePack g = new ServerMessagePack();
 
-            g.playerStates = IMultiplayerController.m_instance.SamplePlayerStates();
+            g.playerStates = new List<PlayerStatePack>(IMultiplayerController.m_instance.SamplePlayerStates());
             g.worldState = IMultiplayerController.m_instance.SampleWorldState();
             return g;
         }

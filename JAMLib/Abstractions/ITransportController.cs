@@ -74,21 +74,23 @@ namespace JAMLib
             onFromClientDic.Remove(eventName);
         }
 
-        public void IEmitToClients(string eventName, object eventData)
+        public void IEmitToClients<T>(string eventName, T eventData)
         {
-            SendToClients(eventName, IMultiplayerController.m_instance.serializer.Serialize(eventData));
+            SendToClients(eventName, IMultiplayerController.m_instance.serializer.Serialize<T>(eventData));
         }
 
-        public void IEmitToServer(string eventName, object eventData)
+        public void IEmitToServer<T>(string eventName, T eventData)
         {
-            SendToServer(eventName, IMultiplayerController.m_instance.serializer.Serialize(eventData));
+            SendToServer(eventName, IMultiplayerController.m_instance.serializer.Serialize<T>(eventData));
         }
 
         #region AutoResponses
         public void ReceiveFromClient(string eventName, string connectionId, string eventData)
         {
             StreamMessageReceivedEvent callback;
-            DataPackageHistory eventObj = (DataPackageHistory)IMultiplayerController.m_instance.serializer.Deserialize(eventData);
+            DataPackageHistory eventObj = new DataPackageHistory();
+
+            IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData,  ref eventObj);
 
             if (onFromClientDic.TryGetValue(eventName, out callback))
             {
@@ -99,7 +101,8 @@ namespace JAMLib
         public void ReceiveFromServer(string eventName, string connectionId, string eventData)
         {
             StreamMessageReceivedEvent callback;
-            DataPackageHistory eventObj = (DataPackageHistory)IMultiplayerController.m_instance.serializer.Deserialize(eventData);
+            DataPackageHistory eventObj = new DataPackageHistory();
+            IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData, ref eventObj);
             if (onFromServerDic.TryGetValue(eventName, out callback))
             {
                 callback.Invoke(eventName, connectionId, eventObj);
