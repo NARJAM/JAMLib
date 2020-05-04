@@ -7,7 +7,7 @@ namespace JAMLib
     {
         public IMasterController masterController;
 
-        public InputReceiverController(IMasterController _masterController) : base(_masterController)
+        public InputReceiverController(IMasterController _masterController) : base(_masterController, new ClientMessagePack())
         {
             streamReceiverConfig = IMultiplayerController.config.inputReceiverConfig;
             masterController = _masterController;
@@ -22,8 +22,7 @@ namespace JAMLib
         public override void ProcessData(ClientMessagePack data)
         {
             masterController.SetMirrorState(masterController.liveController.ProcessPack(data));
-            masterController.ProcessServerRequests(data.serverEventRequests);
-
+            masterController.ProcessServerRequests(data.serverEventRequestModel);
         }
 
     }

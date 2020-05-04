@@ -4,7 +4,7 @@ namespace JAMLib
     public class Config
     {
         public string hubName = "flow";
-        public string serverUrl = "http://localhost:59474/";
+        public string serverUrl = "http://ggbri.us-east-1.elasticbeanstalk.com/";
 
         public float maxCorrectionError = 1f;
 

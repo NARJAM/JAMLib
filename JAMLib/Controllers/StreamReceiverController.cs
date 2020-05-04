@@ -6,6 +6,7 @@ namespace JAMLib
 {
     public abstract class StreamReceiverController<IncomingDataModel>
     {
+        IncomingDataModel datainstance;
         public StreamReceiverConfigModel streamReceiverConfig;
         public StreamRecieverLogModel streamRecieverLogModel = new StreamRecieverLogModel
         {
@@ -21,8 +22,9 @@ namespace JAMLib
         public abstract void InitStreamReception(string eventName);
         public MonoBehaviour looper;
 
-        public StreamReceiverController(MonoBehaviour _looper)
+        public StreamReceiverController(MonoBehaviour _looper, IncomingDataModel empty)
         {
+            datainstance = empty;
             looper = _looper;
         }
 
@@ -38,7 +40,7 @@ namespace JAMLib
                 packageProgress = pack.dataPackageHistory[0].packageId;
             }
 
-            for (int i = 0; i < pack.dataPackageHistory.Length; i++)
+            for (int i = 0; i < pack.dataPackageHistory.Count; i++)
             {
                 if ((!packageBuffer.ContainsKey(pack.dataPackageHistory[i].packageId)) && pack.dataPackageHistory[i].packageId > packageProgress)
                 {
@@ -92,14 +94,15 @@ namespace JAMLib
                     if (packageBuffer.TryGetValue(packageProgress + 1, out currentPackageProcessed))
                     {
                         int i = 0;
-                        while (i < currentPackageProcessed.dataStream.Length)
+                        while (i < currentPackageProcessed.dataStream.Count)
                         {
                             UpdateProcessMode();
                             for (int j = 0; j < (int)streamReceiverConfig.processMode; j++)
                             {
-                                if (i < currentPackageProcessed.dataStream.Length)
+                                if (i < currentPackageProcessed.dataStream.Count)
                                 {
-                                    ProcessInstance((IncomingDataModel)currentPackageProcessed.dataStream[i].data);
+                                    IMultiplayerController.m_instance.serializer.Deserialize<IncomingDataModel>(currentPackageProcessed.dataStream[i].data,ref datainstance);
+                                    ProcessInstance(datainstance);
                                     i++;
                                     yield return new WaitForFixedUpdate();
                                 }

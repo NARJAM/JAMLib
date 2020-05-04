@@ -5,28 +5,29 @@ using System;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
-using OdinSerializer;
-
+//using OdinSerializer;
+using Ceras;
+using Ceras.Formatters.AotGenerator;
 namespace JAMLib
 {
-    public class OdinSerializerController : ISerializerController
+    public class CerasSerializerController : ISerializerController
     {
-
-        public override object Deserialize(string dataString)
-        {
-
-            string decomstring = DecompressString(dataString);
-            object eventObj = SerializationUtility.DeserializeValue<object>(Convert.FromBase64String(decomstring), DataFormat.Binary);
-           // Debug.Log("InData " + dataString.Length);
-            return eventObj;
+        public CerasSerializer ceras;
+        public CerasSerializerController() {
+            SerializerConfig config = new SerializerConfig();
+            CerasUnityFormatters.ApplyToConfig(config);
+            ceras = new CerasSerializer(config);
         }
 
-        public override string Serialize(object data)
+        public override void Deserialize<T>(string dataString,ref T empty)
         {
-            string originalString = Convert.ToBase64String(SerializationUtility.SerializeValue<object>(data, DataFormat.Binary));
-            string dataStringCom = CompressString(originalString);
-          //  Debug.Log("OutData " + dataStringCom.Length);
-            return dataStringCom;
+            ceras.Deserialize<T>(ref empty, DecompressString(dataString));
+        }
+
+        public override string Serialize<T>(T data)
+        {
+            string originalString = CompressString(ceras.Serialize<T>(data));
+            return originalString;
         }
 
         public void CopyTo(Stream src, Stream dest)
@@ -41,9 +42,8 @@ namespace JAMLib
             }
         }
 
-        public string CompressString(string datastring)
+        public string CompressString(byte[] buffer)
         {
-            byte[] buffer = GetBytes(datastring);
             var memoryStream = new MemoryStream();
             using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
             {
@@ -72,7 +72,7 @@ namespace JAMLib
         }
 
 
-        public string DecompressString(string compressedText)
+        public byte[] DecompressString(string compressedText)
         {
             byte[] gZipBuffer = GetBytes(compressedText);
             using (var memoryStream = new MemoryStream())
@@ -88,7 +88,7 @@ namespace JAMLib
                     gZipStream.Read(buffer, 0, buffer.Length);
                 }
 
-                return GetString(buffer);
+                return buffer;
             }
         }
 

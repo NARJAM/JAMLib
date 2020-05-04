@@ -47,7 +47,7 @@ namespace JAMLib
                 for (int i = 0; i <= streamSenderConfig.sendRate; i++)
                 {
                     DataInstance di = new DataInstance();
-                    di.data = GetData();
+                    di.data = IMultiplayerController.m_instance.serializer.Serialize(GetData());
                     di.instanceId = instancesSentCount;
                     instancesSentCount++;
                     dataStreamCache.Add(di);
@@ -56,7 +56,7 @@ namespace JAMLib
 
                 currentPackageSend.packageId = packagesSentCount;
                 packagesSentCount++;
-                currentPackageSend.dataStream = dataStreamCache.ToArray();
+                currentPackageSend.dataStream = dataStreamCache;
                 SendDataPackage(currentPackageSend);
             }
         }
@@ -79,16 +79,16 @@ namespace JAMLib
 
             //create final package with history added
             DataPackageHistory dataHistory = new DataPackageHistory();
-            dataHistory.dataPackageHistory = (packageHistory).ToArray();
+            dataHistory.dataPackageHistory = (packageHistory);
 
             //send it to transport
             if (IMultiplayerController.gameAuth == GameAuth.Server)
             {
-                IMultiplayerController.m_instance.transportController.IEmitToClients(emitEventName, dataHistory);
+                IMultiplayerController.m_instance.transportController.IEmitToClients<DataPackageHistory>(emitEventName, dataHistory);
             }
             else
             {
-                IMultiplayerController.m_instance.transportController.IEmitToServer(emitEventName, dataHistory);
+                IMultiplayerController.m_instance.transportController.IEmitToServer<DataPackageHistory>(emitEventName, dataHistory);
             }
         }
     }

@@ -66,6 +66,7 @@ namespace JAMLib
                 OnPastStateSet(pastState);
                 if (CheckForCorrection(psp.playerState, pastTick.state, pastTick.tick))
                 {
+                    Debug.Log("Correction Needed");
                     ProjectState(psp);
                 }
             }
@@ -89,15 +90,20 @@ namespace JAMLib
             }
         }
 
-        public void ProcessServerRequests(ServerEventRequest[] requests)
+        public void ProcessServerRequests(ServerEventRequestModel requests)
         {
-            for (int i = 0; i < requests.Length; i++)
+            if (requests.serverEventRequests == null)
             {
-                if (requests[i].requestMessages != null)
+                return;
+            }
+
+            for (int i = 0; i < requests.serverEventRequests.Count; i++)
+            {
+                if (requests.serverEventRequests[i].requestMessages != null)
                 {
-                    for (int j = 0; j < requests[i].requestMessages.Length; j++)
+                    for (int j = 0; j < requests.serverEventRequests[i].requestMessages.Count; j++)
                     {
-                        liveController.ProcessServerEvents(i, requests[i].requestMessages[j]);
+                        liveController.ProcessServerEvents(i, requests.serverEventRequests[i].requestMessages[j]);
                     }
                 }
             }
