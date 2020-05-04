@@ -86,5 +86,63 @@ namespace JAMLib
         Server,
         Client
     }
-}
 
+
+    [GenerateFormatter]
+    public struct NetworkQuaternion
+    {
+        public float x;
+        public float y;
+        public float z;
+        public float w;
+
+        public Quaternion GetQuaternion()
+        {
+            return new Quaternion(x, y, z, w);
+        }
+
+        public void SetQuaternion(Quaternion q)
+        {
+            this.x = q.x;
+            this.y = q.y;
+            this.z = q.z;
+            this.w = q.w;
+        }
+    }
+    [GenerateFormatter]
+    public struct NetworkVector2
+    {
+        public float x;
+        public float y;
+
+        public Vector2 GetVector2()
+        {
+            return new Vector2(x, y);
+        }
+
+        public void SetVector2(Vector2 v)
+        {
+            this.x = v.x;
+            this.y = v.y;
+        }
+    }
+    [GenerateFormatter]
+    public struct NetworkVector3
+    {
+        public float x;
+        public float y;
+        public float z;
+
+        public Vector3 GetVector3()
+        {
+            return new Vector3(x, y, z);
+        }
+        public void SetVector3(Vector3 v)
+        {
+            this.x = v.x;
+            this.y = v.y;
+            this.z = v.z;
+        }
+    }
+
+}
