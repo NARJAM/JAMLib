@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using JINADA;
 
 [Serializable]
 public struct WorldStateModel
@@ -22,5 +21,5 @@ public struct PlayerInputModel
 [System.Serializable]
 public struct PlayerInitModel
 {
-
 }
+
