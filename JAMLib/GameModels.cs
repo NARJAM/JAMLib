@@ -2,24 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using MessagePack;
+using JAMLib;
 
-[Serializable]
+[MessagePackObject]
 public struct WorldStateModel
 {
 }
 
-[System.Serializable]
+public enum SERTypes
+{
+
+}
+
+[MessagePackObject]
 public struct PlayerStateModel
 {
 }
 
-[System.Serializable]
+[MessagePackObject]
 public struct PlayerInputModel
 {
 }
 
-[System.Serializable]
+[MessagePackObject]
 public struct PlayerInitModel
 {
+
 }
 
