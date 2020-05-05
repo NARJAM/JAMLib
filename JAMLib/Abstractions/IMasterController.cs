@@ -97,7 +97,7 @@ namespace JAMLib
                 return;
             }
 
-            for (int i = 0; i < requests.serverEventRequests.Count; i++)
+            for (int i = 0; i < requests.serverEventRequests.Length; i++)
             {
                 if (requests.serverEventRequests[i].requestMessages != null)
                 {

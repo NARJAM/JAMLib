@@ -2,82 +2,103 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Ceras.Formatters.AotGenerator;
+using MessagePack;
 
 namespace JAMLib
 {
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct PlayerStatePack
     {
+        [Key(0)]
         public int tick;
+
+        [Key(1)]
         public string conId;
+
+        [Key(2)]
         public PlayerStateModel playerState;
+
+        [Key(3)]
         public PlayerInitModel playerInit;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct ServerMessagePack
     {
+        [Key(0)]
         public List<PlayerStatePack> playerStates;
+
+        [Key(1)]
         public WorldStateModel worldState;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct ClientMessagePack
     {
+        [Key(0)]
         public int tick;
+
+        [Key(1)]
         public string connectionId;
+
+        [Key(2)]
         public PlayerInputModel inputData;
+
+        [Key(3)]
         public ServerEventRequestModel serverEventRequestModel;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct ServerEventRequestModel
     {
-        public List<ServerEventRequest> serverEventRequests;
-
-        public void Init()
-        {
-            serverEventRequests = new List<ServerEventRequest>();
-            for (int i = 0; i < 1; i++)
-            {
-                ServerEventRequest ser = new ServerEventRequest();
-                ser.requestMessages = new List<string>();
-                this.serverEventRequests.Add(ser);
-            }
-        }
+        [Key(0)]
+        public ServerEventRequest[] serverEventRequests;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct ServerEventRequest
     {
+        [Key(0)]
         public List<string> requestMessages;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct TickModel
     {
+        [Key(0)]
         public int tick;
+
+        [Key(1)]
         public PlayerInputModel input;
+
+        [Key(2)]
         public PlayerStateModel state;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct DataInstance
     {
+        [Key(0)]
         public string data;
+
+        [Key(1)]
         public int instanceId;
     }
-    [GenerateFormatter]
+
+    [MessagePackObject]
     public struct DataPackage
     {
+        [Key(0)]
         public List<DataInstance> dataStream;
+
+        [Key(1)]
         public int packageId;
     }
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct DataPackageHistory
     {
+        [Key(0)]
         public List<DataPackage> dataPackageHistory;
     }
 
@@ -88,12 +109,19 @@ namespace JAMLib
     }
 
 
-    [GenerateFormatter]
+    [MessagePackObject]
     public struct NetworkQuaternion
     {
+        [Key(0)]
         public float x;
+
+        [Key(1)]
         public float y;
+
+        [Key(2)]
         public float z;
+
+        [Key(3)]
         public float w;
 
         public Quaternion GetQuaternion()
@@ -109,10 +137,14 @@ namespace JAMLib
             this.w = q.w;
         }
     }
-    [GenerateFormatter]
+
+    [MessagePackObject]
     public struct NetworkVector2
     {
+        [Key(0)]
         public float x;
+
+        [Key(1)]
         public float y;
 
         public Vector2 GetVector2()
@@ -126,11 +158,17 @@ namespace JAMLib
             this.y = v.y;
         }
     }
-    [GenerateFormatter]
+
+    [MessagePackObject]
     public struct NetworkVector3
     {
+        [Key(0)]
         public float x;
+
+        [Key(1)]
         public float y;
+
+        [Key(2)]
         public float z;
 
         public Vector3 GetVector3()

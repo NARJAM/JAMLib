@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 namespace JAMLib
@@ -7,7 +8,7 @@ namespace JAMLib
     {
         public IMasterController masterController;
         private PlayerStatePack playerStatePack = new PlayerStatePack();
-        public ServerEventRequestModel serverEvents = new ServerEventRequestModel();
+        public ServerEventRequestModel serverEvents;
 
         public PlayerStateModel currentPlayerState = new PlayerStateModel();
         public PlayerInitModel initPlayer = new PlayerInitModel();
@@ -17,15 +18,14 @@ namespace JAMLib
 
         public void Initialize(PlayerStateModel initialState, bool _isOwner, string connectionId, IMasterController _masterController)
         {
+            serverEvents.serverEventRequests = new ServerEventRequest[Enum.GetNames(typeof(SERTypes)).Length];
+
             isOwner = _isOwner;
             masterController = _masterController;
             playerStatePack.conId = connectionId;
             isInitialized = true;
             currentPlayerState = initialState;
             OnInitialize(initialState);
-
-            serverEvents = new ServerEventRequestModel();
-            serverEvents.Init();
         }
 
         public void SetState(PlayerStateModel initialState)
@@ -40,8 +40,6 @@ namespace JAMLib
             return ProcessInput(inputPack.inputData);
         }
 
-
-
         public abstract void OnInitialize(PlayerStateModel initialState);
         public abstract PlayerStateModel ProcessInput(PlayerInputModel playerInput);
         public abstract void ProcessServerEvents(int requestId, string requestData);
@@ -54,8 +52,7 @@ namespace JAMLib
         public ServerEventRequestModel SampleServerRequests()
         {
             ServerEventRequestModel qwe = serverEvents;
-            serverEvents = new ServerEventRequestModel();
-            serverEvents.Init();
+            serverEvents.serverEventRequests = new ServerEventRequest[Enum.GetNames(typeof(SERTypes)).Length];
             return qwe;
         }
 

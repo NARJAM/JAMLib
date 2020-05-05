@@ -90,7 +90,7 @@ namespace JAMLib
             StreamMessageReceivedEvent callback;
             DataPackageHistory eventObj = new DataPackageHistory();
 
-            IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData,  ref eventObj);
+            eventObj = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData);
 
             if (onFromClientDic.TryGetValue(eventName, out callback))
             {
@@ -102,7 +102,7 @@ namespace JAMLib
         {
             StreamMessageReceivedEvent callback;
             DataPackageHistory eventObj = new DataPackageHistory();
-            IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData, ref eventObj);
+            eventObj = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData);
             if (onFromServerDic.TryGetValue(eventName, out callback))
             {
                 callback.Invoke(eventName, connectionId, eventObj);

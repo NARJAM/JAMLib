@@ -101,7 +101,7 @@ namespace JAMLib
                             {
                                 if (i < currentPackageProcessed.dataStream.Count)
                                 {
-                                    IMultiplayerController.m_instance.serializer.Deserialize<IncomingDataModel>(currentPackageProcessed.dataStream[i].data,ref datainstance);
+                                    datainstance = IMultiplayerController.m_instance.serializer.Deserialize<IncomingDataModel>(currentPackageProcessed.dataStream[i].data);
                                     ProcessInstance(datainstance);
                                     i++;
                                     yield return new WaitForFixedUpdate();

@@ -29,7 +29,7 @@ namespace JAMLib
             Debug.Log("INNITED");
             m_instance = this;
             config = new Config();
-            serializer = new CerasSerializerController();
+            serializer = new MessagePackSerializerController();
             transportController = new SignalRController();
         }
 
@@ -54,7 +54,7 @@ namespace JAMLib
         void InitializeServer(PlayerInitModel init, GameAuth auth)
         {
             transportController = new SignalRController();
-            serializer = new CerasSerializerController();
+            serializer = new MessagePackSerializerController();
             transportController.JoinRoom(init, auth.ToString(), OnMatchConnected);
             transportController.IOnPlayerJoined(PlayerJoined);
         }
@@ -150,7 +150,7 @@ namespace JAMLib
         ServerMessagePack startMatchData;
         public void OnStartMatch(string eventName, string connectionId, DataPackageHistory eventData)
         {
-            IMultiplayerController.m_instance.serializer.Deserialize<ServerMessagePack>(eventData.dataPackageHistory[0].dataStream[0].data, ref startMatchData);
+            startMatchData = IMultiplayerController.m_instance.serializer.Deserialize<ServerMessagePack>(eventData.dataPackageHistory[0].dataStream[0].data);
             SpawnMatch(startMatchData);
         }
 
