@@ -22,15 +22,20 @@ namespace JAMLib
             pi.inputData = masterController.inputController.SampleInput();
             pi.serverEventRequestModel = masterController.liveController.SampleServerRequests();
             pi.tick = tickTrack;
-            PlayerStateModel psm = masterController.liveController.ProcessPack(pi);
-            masterController.ProcessServerRequests(pi.serverEventRequestModel);
-            masterController.SetMirrorState(psm);
 
-            TickModel tm = new TickModel();
-            tm.state = psm;
-            tm.input = pi.inputData;
-            tm.tick = tickTrack;
-            AddToHistory(tm);
+            if (IMultiplayerController.config.isClientSidePrediction)
+            {
+
+                PlayerStateModel psm = masterController.liveController.ProcessPack(pi);
+                masterController.ProcessServerRequests(pi.serverEventRequestModel);
+                masterController.SetMirrorState(psm);
+
+                TickModel tm = new TickModel();
+                tm.state = psm;
+                tm.input = pi.inputData;
+                tm.tick = tickTrack;
+                AddToHistory(tm);
+            }
             return pi;
         }
 

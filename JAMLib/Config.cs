@@ -5,7 +5,7 @@ namespace JAMLib
     {
         public string hubName = "flow";
         public string serverUrl = "http://localhost:59474/";
-
+        public bool isClientSidePrediction;
         public float maxCorrectionError = 1f;
 
         public StreamSenderConfigModel inputSenderConfig = new StreamSenderConfigModel

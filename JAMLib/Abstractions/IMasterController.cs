@@ -56,20 +56,19 @@ namespace JAMLib
 
         public void SetGhostState(PlayerStatePack psp)
         {
-            ghostState = psp.playerState;
-            OnGhostStateSet(psp.playerState);
-            TickModel pastTick = new TickModel();
-
-            if (inputSenderController.tickHistory.TryGetValue(psp.tick, out pastTick))
-            {
-                pastState = pastTick.state;
-                OnPastStateSet(pastState);
-                if (CheckForCorrection(psp.playerState, pastTick.state, pastTick.tick))
+                ghostState = psp.playerState;
+                OnGhostStateSet(psp.playerState);
+                TickModel pastTick = new TickModel();
+                if (inputSenderController.tickHistory.TryGetValue(psp.tick, out pastTick))
                 {
-                    Debug.Log("Correction Needed");
-                    ProjectState(psp);
+                    pastState = pastTick.state;
+                    OnPastStateSet(pastState);
+                    if (CheckForCorrection(psp.playerState, pastTick.state, pastTick.tick))
+                    {
+                        Debug.Log("Correction Needed");
+                        ProjectState(psp);
+                    }
                 }
-            }
         }
 
         public abstract void OnMirrorStateSet(PlayerStateModel playerState);

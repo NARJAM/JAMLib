@@ -158,7 +158,7 @@ namespace JAMLib
         {
             for (int i = 0; i < gameStateData.playerStates.Count; i++)
             {
-                if (masterControllerDic[i].isOwner)
+                if (masterControllerDic[i].isOwner && IMultiplayerController.config.isClientSidePrediction)
                 {
                     masterControllerDic[i].SetGhostState(gameStateData.playerStates[i]);
                 }

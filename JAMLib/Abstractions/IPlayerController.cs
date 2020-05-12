@@ -36,6 +36,7 @@ namespace JAMLib
 
         public PlayerStateModel ProcessPack(ClientMessagePack inputPack)
         {
+            Debug.Log("PROCESSING DATA BRAH");
             tick = inputPack.tick;
             return ProcessInput(inputPack.inputData);
         }
