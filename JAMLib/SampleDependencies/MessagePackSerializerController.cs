@@ -26,6 +26,7 @@ namespace JAMLib
         public override string Serialize<T>(T data)
         {
             string dataString = Convert.ToBase64String(MessagePackSerializer.Serialize<T>(data, lz4Options));
+            Debug.Log("DATA " + dataString.Length);
             return dataString;
         }
     }

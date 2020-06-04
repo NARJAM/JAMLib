@@ -20,6 +20,11 @@ namespace JAMLib
         {
             serverEvents.serverEventRequests = new ServerEventRequest[Enum.GetNames(typeof(SERTypes)).Length];
 
+            for(int i=0; i< serverEvents.serverEventRequests.Length; i++)
+            {
+                serverEvents.serverEventRequests[i].requestMessages = new List<string>();
+            }
+
             isOwner = _isOwner;
             masterController = _masterController;
             playerStatePack.conId = connectionId;
@@ -46,6 +51,10 @@ namespace JAMLib
 
         public void AddServerEventRequest(int requestId, string requestData)
         {
+            if (serverEvents.serverEventRequests[requestId].requestMessages == null)
+            {
+                serverEvents.serverEventRequests[requestId].requestMessages = new List<string>();
+            }
             serverEvents.serverEventRequests[requestId].requestMessages.Add(requestData);
         }
 
