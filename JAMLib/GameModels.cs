@@ -98,13 +98,7 @@ public struct PlayerInputModel
     public string connectionId;
 
     [Key(1)]
-    public double keyboardAxis;
-
-    [Key(2)]
-    public double joyStickAxis;
-
-    [Key(3)]
-    public bool isMobile;
+    public Vector2 direction;
 }
 
 [MessagePackObject]
