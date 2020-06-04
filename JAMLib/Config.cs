@@ -4,14 +4,14 @@ namespace JAMLib
     public class Config
     {
         public string hubName = "flow";
-        public string serverUrl = "https://flowmanager20200604071117.azurewebsites.net/";
+        public string serverUrl = "https://flowmanager20200604085332.azurewebsites.net/";
         public bool isClientSidePrediction;
         public float maxCorrectionError = 1f;
 
         public StreamSenderConfigModel inputSenderConfig = new StreamSenderConfigModel
         {
             sendRate = 5,
-            historySize = 10,
+            historySize = 15,
             gameAuth = GameAuth.Server,
         };
 
@@ -29,7 +29,7 @@ namespace JAMLib
         public StreamSenderConfigModel gameStateSenderConfig = new StreamSenderConfigModel
         {
             sendRate = 5,
-            historySize = 2,
+            historySize = 15,
             gameAuth = GameAuth.Server,
         };
 
