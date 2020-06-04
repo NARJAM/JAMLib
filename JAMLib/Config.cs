@@ -4,7 +4,7 @@ namespace JAMLib
     public class Config
     {
         public string hubName = "flow";
-        public string serverUrl = "http://localhost:59474/";
+        public string serverUrl = "https://flowmanager20200604071117.azurewebsites.net/";
         public bool isClientSidePrediction;
         public float maxCorrectionError = 1f;
 

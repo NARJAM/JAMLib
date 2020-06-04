@@ -49,6 +49,19 @@ namespace JAMLib
             }
         }
 
+        public void CleanUpBuffer()
+        {
+            Debug.Log("CleanedUpBuffer");
+            foreach(KeyValuePair<int, DataPackage> kvp in packageBuffer)
+            {
+                if (kvp.Value.packageId < packageProgress)
+                {
+                    Debug.Log("Found Garbage " + kvp.Key);
+                    packageBuffer.Remove(kvp.Key);
+                }
+            }
+        }
+
         Coroutine pdpc;
         public void StartReception()
         {
@@ -80,10 +93,18 @@ namespace JAMLib
         }
 
         int packageProgress = -1;
+        public int cleanUpFrequency = 100;
         IEnumerator ProcessDataPackageCor()
         {
+            int temp=0;
             while (true)
             {
+                temp++;
+                if (temp == cleanUpFrequency)
+                {
+                    temp = 0;
+                    CleanUpBuffer();
+                }
                 if (!firstPackageReceived || streamRecieverLogModel.packagesReceivedCount < streamReceiverConfig.initialBufferCount)
                 {
                     yield return new WaitForFixedUpdate();
