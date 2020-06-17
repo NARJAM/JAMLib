@@ -31,6 +31,7 @@ namespace JAMLib
         bool firstPackageReceived;
         public void DataPackageReceived(string eventName, string connectionId, DataPackageHistory eventData)
         {
+            Debug.Log("DataPackageReceived " + eventName);
             streamRecieverLogModel.packagesReceivedCount++;
             DataPackageHistory pack = eventData;
 

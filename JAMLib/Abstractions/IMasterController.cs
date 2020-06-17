@@ -18,7 +18,7 @@ namespace JAMLib
         public bool isOwner;
         public string connectionId;
 
-        public abstract bool CheckForCorrection(PlayerStateModel serverState, PlayerStateModel localState, int tick);
+        public abstract bool CheckForCorrection(PlayerStateModel serverState, PlayerStateModel localState);
 
         public void Initialize(ITransportController _transportController, PlayerStatePack psp, bool _isOwner)
         {
@@ -29,17 +29,29 @@ namespace JAMLib
             mirrorPlayer.isOwner = _isOwner;
             liveController.Initialize(psp.playerState, _isOwner, connectionId, this);
 
-            if (isOwner)
+            if (IMultiplayerController.config.isOffline)
             {
+                Debug.Log("Initialized Master");
                 inputSenderController = new InputSenderController(this);
-                inputSenderController.StartStream(connectionId);
-                inputController.enabled = true;
+                inputSenderController.StartStream("offline");
+                inputController.enabled = true; 
+                inputReceiverController = new InputReceiverController(this);
+                inputReceiverController.InitStreamReception("offline");
             }
             else
             {
-                inputReceiverController = new InputReceiverController(this);
-                inputReceiverController.InitStreamReception(connectionId);
-                inputController.enabled = false;
+                if (isOwner)
+                {
+                    inputSenderController = new InputSenderController(this);
+                    inputSenderController.StartStream(connectionId);
+                    inputController.enabled = true;
+                }
+                else
+                {
+                    inputReceiverController = new InputReceiverController(this);
+                    inputReceiverController.InitStreamReception(connectionId);
+                    inputController.enabled = false;
+                }
             }
         }
 
@@ -63,7 +75,7 @@ namespace JAMLib
                 {
                     pastState = pastTick.state;
                     OnPastStateSet(pastState);
-                    if (CheckForCorrection(psp.playerState, pastTick.state, pastTick.tick))
+                    if (CheckForCorrection(psp.playerState, pastTick.state))
                     {
                         Debug.Log("Correction Needed");
                         ProjectState(psp);

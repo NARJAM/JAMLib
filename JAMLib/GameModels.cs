@@ -95,9 +95,6 @@ public struct WorldStateModel
 public struct PlayerInputModel
 {
     [Key(0)]
-    public string connectionId;
-
-    [Key(1)]
     public Vector2 direction;
 }
 

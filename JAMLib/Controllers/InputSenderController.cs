@@ -18,24 +18,24 @@ namespace JAMLib
 
         public override ClientMessagePack GetData()
         {
+            Debug.Log("GetData");
             ClientMessagePack pi = new ClientMessagePack();
             pi.inputData = masterController.inputController.SampleInput();
             pi.serverEventRequestModel = masterController.liveController.SampleServerRequests();
             pi.tick = tickTrack;
+                if (IMultiplayerController.config.isClientSidePrediction)
+                {
 
-            if (IMultiplayerController.config.isClientSidePrediction)
-            {
+                    PlayerStateModel psm = masterController.liveController.ProcessPack(pi);
+                    masterController.ProcessServerRequests(pi.serverEventRequestModel);
+                    masterController.SetMirrorState(psm);
 
-                PlayerStateModel psm = masterController.liveController.ProcessPack(pi);
-                masterController.ProcessServerRequests(pi.serverEventRequestModel);
-                masterController.SetMirrorState(psm);
-
-                TickModel tm = new TickModel();
-                tm.state = psm;
-                tm.input = pi.inputData;
-                tm.tick = tickTrack;
-                AddToHistory(tm);
-            }
+                    TickModel tm = new TickModel();
+                    tm.state = psm;
+                    tm.input = pi.inputData;
+                    tm.tick = tickTrack;
+                    AddToHistory(tm);
+                }
             return pi;
         }
 

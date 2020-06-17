@@ -76,12 +76,14 @@ namespace JAMLib
 
         public void IEmitToClients<T>(string eventName, T eventData)
         {
-            SendToClients(eventName, IMultiplayerController.m_instance.serializer.Serialize<T>(eventData));
+            string dataString = IMultiplayerController.m_instance.serializer.Serialize<T>(eventData);
+            SendToClients(eventName, dataString);
         }
 
         public void IEmitToServer<T>(string eventName, T eventData)
         {
-            SendToServer(eventName, IMultiplayerController.m_instance.serializer.Serialize<T>(eventData));
+            string dataString = IMultiplayerController.m_instance.serializer.Serialize<T>(eventData);
+            SendToServer(eventName, dataString);
         }
 
         #region AutoResponses
@@ -103,6 +105,10 @@ namespace JAMLib
             StreamMessageReceivedEvent callback;
             DataPackageHistory eventObj = new DataPackageHistory();
             eventObj = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData);
+            if (eventName == null)
+            {
+                eventName = "";
+            }
             if (onFromServerDic.TryGetValue(eventName, out callback))
             {
                 callback.Invoke(eventName, connectionId, eventObj);

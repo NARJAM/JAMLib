@@ -11,7 +11,7 @@ namespace JAMLib
         GameStateReceiverController stateReceiver;
         public GameObject masterControllerPrefab;
 
-        public static GameAuth gameAuth;
+        public static GameAuth gameAuth = GameAuth.Client;
 
         public abstract void OnSpawnMatch(WorldStateModel gsm);
         public abstract PlayerStateModel GetSpawnPlayerState(int playerIndex);
@@ -30,19 +30,42 @@ namespace JAMLib
             m_instance = this;
             config = new Config();
             serializer = new MessagePackSerializerController();
-            transportController = new SignalRController();
+            InitTransport();
+        }
+
+        void InitTransport()
+        {
+            if (config.isOffline)
+            {
+                transportController = new OfflineController();
+            }
+            else
+            {
+
+                transportController = new SignalRController();
+            }
         }
 
         public void ConnectToMatch(PlayerInitModel init)
         {
             Init();
-            if (gameAuth == GameAuth.Server)
+
+            if (!config.isOffline)
             {
-                InitializeServer(init, gameAuth);
+                if (gameAuth == GameAuth.Server)
+                {
+                    InitializeServer(init, gameAuth);
+                }
+                else
+                {
+                    InitializeClient(init, gameAuth);
+                }
             }
             else
             {
-                InitializeClient(init, gameAuth);
+                InitializeServer(init, GameAuth.Server);
+                InitializeClient(init, GameAuth.Client);
+                InitiateMatch();
             }
         }
 
@@ -53,7 +76,7 @@ namespace JAMLib
 
         void InitializeServer(PlayerInitModel init, GameAuth auth)
         {
-            transportController = new SignalRController();
+            InitTransport();
             serializer = new MessagePackSerializerController();
             transportController.JoinRoom(init, auth.ToString(), OnMatchConnected);
             transportController.IOnPlayerJoined(PlayerJoined);
@@ -98,20 +121,28 @@ namespace JAMLib
                 GameObject g = Instantiate(masterControllerPrefab);
                 IMasterController pu = g.GetComponent<IMasterController>();
                 masterControllerDic.Add(pu);
-                if (gameAuth == GameAuth.Client)
+
+                if (config.isOffline)
                 {
-                    if (transportController.connectionId == players[i].conId)
+                    pu.Initialize(transportController, players[0], true);
+                }
+                else
+                {
+                    if (gameAuth == GameAuth.Client)
                     {
-                        pu.Initialize(transportController, players[i], true);
+                        if (transportController.connectionId == players[i].conId)
+                        {
+                            pu.Initialize(transportController, players[i], true);
+                        }
+                        else
+                        {
+                            pu.Initialize(transportController, players[i], false);
+                        }
                     }
                     else
                     {
                         pu.Initialize(transportController, players[i], false);
                     }
-                }
-                else
-                {
-                    pu.Initialize(transportController, players[i], false);
                 }
                 pu.SetPlayerInit(players[i].playerInit);
             }
@@ -130,18 +161,31 @@ namespace JAMLib
 
         public void InitiateMatch()
         {
+            Debug.Log("InitiateMatch");
             DataPackageHistory dh = new DataPackageHistory();
             DataPackage dp = new DataPackage();
             DataInstance di = new DataInstance();
             ServerMessagePack smd = new ServerMessagePack();
             smd.worldState = GetSpawnGameSate();
+
+            if (config.isOffline)
+            {
+                PlayerStatePack psp = new PlayerStatePack();
+                PlayerInitModel pim = new PlayerInitModel();
+                psp.playerInit = pim;
+                playerInitDic.Add(psp);
+            }
+
             smd.playerStates = new List<PlayerStatePack>(playerInitDic);
             di.data = IMultiplayerController.m_instance.serializer.Serialize<ServerMessagePack>(smd);
             dp.dataStream = new List<DataInstance>();
             dp.dataStream.Add(di);
             dh.dataPackageHistory = new List<DataPackage>();
             dh.dataPackageHistory.Add(dp);
-            transportController.IEmitToClients<DataPackageHistory>("start", dh);
+            if (!config.isOffline)
+            {
+                transportController.IEmitToClients<DataPackageHistory>("start", dh);
+            }
             stateStreamer = new GameStateSenderController();
             stateStreamer.StartStream("gameState");
             SpawnMatch(smd);
