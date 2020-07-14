@@ -9,6 +9,8 @@ namespace JAMLib
     {
         public PlayerInputModel currentInputData = new PlayerInputModel();
 
+        public abstract void InitBot(string botId);
+
         public PlayerInputModel SampleInput()
         {
             return currentInputData;

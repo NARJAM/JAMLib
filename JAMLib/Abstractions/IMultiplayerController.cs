@@ -124,7 +124,7 @@ namespace JAMLib
 
                 if (config.isOffline)
                 {
-                    pu.Initialize(transportController, players[0], true);
+                    pu.Initialize(transportController, players[i], true);
                 }
                 else
                 {
@@ -173,6 +173,17 @@ namespace JAMLib
                 PlayerStatePack psp = new PlayerStatePack();
                 PlayerInitModel pim = new PlayerInitModel();
                 psp.playerInit = pim;
+                psp.conId = "offline";
+                playerInitDic.Add(psp);
+            }
+
+            for(int i=0; i<config.botCount; i++)
+            {
+                PlayerStatePack psp = new PlayerStatePack();
+                PlayerInitModel pim = new PlayerInitModel();
+                psp.playerInit = pim;
+                psp.conId = "b"+i;
+                psp.isBot = true;
                 playerInitDic.Add(psp);
             }
 

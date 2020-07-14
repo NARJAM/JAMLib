@@ -33,10 +33,10 @@ namespace JAMLib
             {
                 Debug.Log("Initialized Master");
                 inputSenderController = new InputSenderController(this);
-                inputSenderController.StartStream("offline");
+                inputSenderController.StartStream(connectionId);
                 inputController.enabled = true; 
                 inputReceiverController = new InputReceiverController(this);
-                inputReceiverController.InitStreamReception("offline");
+                inputReceiverController.InitStreamReception(connectionId);
             }
             else
             {
@@ -52,6 +52,11 @@ namespace JAMLib
                     inputReceiverController.InitStreamReception(connectionId);
                     inputController.enabled = false;
                 }
+            }
+
+            if (psp.isBot)
+            {
+                inputController.InitBot(psp.conId);
             }
         }
 

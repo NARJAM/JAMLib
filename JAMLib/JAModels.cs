@@ -20,6 +20,9 @@ namespace JAMLib
 
         [Key(3)]
         public PlayerInitModel playerInit;
+
+        [Key(4)]
+        public bool isBot;
     }
 
     [MessagePackObject]
