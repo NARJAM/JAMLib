@@ -11,6 +11,7 @@ namespace JAMLib
         public InputReceiverController inputReceiverController;
         public InputSenderController inputSenderController;
         public IPlayerView mirrorPlayer;
+        public PlayerStatePack mirrorPack;
         public PlayerStateModel ghostState;
         public PlayerStateModel projectedState;
         public PlayerStateModel pastState;
@@ -31,12 +32,12 @@ namespace JAMLib
 
             if (IMultiplayerController.config.isOffline)
             {
-                Debug.Log("Initialized Master");
                 inputSenderController = new InputSenderController(this);
                 inputSenderController.StartStream(connectionId);
                 inputController.enabled = true; 
                 inputReceiverController = new InputReceiverController(this);
                 inputReceiverController.InitStreamReception(connectionId);
+
             }
             else
             {
@@ -58,17 +59,19 @@ namespace JAMLib
             {
                 inputController.InitBot(psp.conId);
             }
+            mirrorPack = psp;
         }
 
         public void SetMirrorState(PlayerStateModel psp)
         {
+            mirrorPack.playerState = psp;
             mirrorPlayer.SetFromModel(psp);
             OnMirrorStateSet(psp);
         }
 
-        public void SetPlayerInit(PlayerInitModel pim)
+        public void SetPlayerInit(PlayerInitModel pim,bool isBot)
         {
-            mirrorPlayer.SetInit(pim);
+            mirrorPlayer.SetInit(pim,isBot);
         }
 
         public void SetGhostState(PlayerStatePack psp)

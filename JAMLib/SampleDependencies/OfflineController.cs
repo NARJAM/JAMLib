@@ -12,13 +12,11 @@ public class OfflineController : ITransportController
 
     public override void SendToClients(string eventName, string dataString)
     {
-        Debug.Log("SendToClients");
         base.ReceiveFromServer(eventName, "", dataString);
     }
 
     public override void SendToServer(string eventName, string dataString)
     {
-        Debug.Log("SendToServer");
         base.ReceiveFromClient(eventName, "", dataString);
     }
 }

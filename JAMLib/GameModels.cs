@@ -15,21 +15,24 @@ public struct FoodData
     public int foodColorType;
 
     [Key(2)]
-    public bool isMoving;
+    public int foodObjectType;
 
     [Key(3)]
-    public double initialSize;
+    public bool isMoving;
 
     [Key(4)]
-    public double floatingSpeed;
+    public double initialSize;
 
     [Key(5)]
-    public double rotationSpeed;
+    public double floatingSpeed;
 
     [Key(6)]
-    public NetworkQuaternion foodBoomRotation;
+    public double rotationSpeed;
 
     [Key(7)]
+    public NetworkQuaternion foodBoomRotation;
+
+    [Key(8)]
     public NetworkQuaternion foodSelfRotation;
 }
 
@@ -42,10 +45,7 @@ public enum SERTypes
 public struct CargoCollectionRequest
 {
     [Key(0)]
-    public int cargoId;
-
-    [Key(1)]
-    public int cargoColor;
+    public FoodData foodData;
 }
 
 [MessagePackObject]
@@ -69,6 +69,9 @@ public struct CargoStateModel
 
     [Key(3)]
     public int cargoColorType;
+
+    [Key(4)]
+    public int uid;
 }
 
 [MessagePackObject]
@@ -82,6 +85,9 @@ public struct PlayerStateModel
 
     [Key(2)]
     public CargoTrainStateModel cargoTrainModel;
+
+    [Key(3)]
+    public int vykerVisionDuration;
 }
 
 [MessagePackObject]

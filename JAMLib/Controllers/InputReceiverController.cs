@@ -15,14 +15,12 @@ namespace JAMLib
 
         public override void InitStreamReception(string eventName)
         {
-            Debug.Log("InitStreamReception " + eventName);
             IMultiplayerController.m_instance.transportController.IOnFromClient(eventName, DataPackageReceived);
             StartReception();
         }
 
         public override void ProcessData(ClientMessagePack data)
         {
-            Debug.Log("ProcessData");
             masterController.SetMirrorState(masterController.liveController.ProcessPack(data));
             masterController.ProcessServerRequests(data.serverEventRequestModel);
         }

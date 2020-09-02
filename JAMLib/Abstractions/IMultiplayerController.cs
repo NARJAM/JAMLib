@@ -10,8 +10,11 @@ namespace JAMLib
         GameStateSenderController stateStreamer;
         GameStateReceiverController stateReceiver;
         public GameObject masterControllerPrefab;
+        public PlayerStatePack myState;
 
         public static GameAuth gameAuth = GameAuth.Client;
+
+        public abstract void OnPlayerSpawned(List<IMasterController>masterControllers);
 
         public abstract void OnSpawnMatch(WorldStateModel gsm);
         public abstract PlayerStateModel GetSpawnPlayerState(int playerIndex);
@@ -26,7 +29,6 @@ namespace JAMLib
 
         public void Init()
         {
-            Debug.Log("INNITED");
             m_instance = this;
             config = new Config();
             serializer = new MessagePackSerializerController();
@@ -105,13 +107,19 @@ namespace JAMLib
             return result;
         }
 
+
+        public List<PlayerStatePack> players;
+
         public void SpawnMatch(ServerMessagePack startMatchData)
         {
             SpawnPlayers(startMatchData.playerStates);
             OnSpawnMatch(startMatchData.worldState);
+
+            players = startMatchData.playerStates;
         }
 
         public abstract WorldStateModel GetSpawnGameSate();
+
 
         void SpawnPlayers(List<PlayerStatePack> players)
         {
@@ -119,9 +127,9 @@ namespace JAMLib
             for (int i = 0; i < players.Count; i++)
             {
                 GameObject g = Instantiate(masterControllerPrefab);
+
                 IMasterController pu = g.GetComponent<IMasterController>();
                 masterControllerDic.Add(pu);
-
                 if (config.isOffline)
                 {
                     pu.Initialize(transportController, players[i], true);
@@ -144,9 +152,9 @@ namespace JAMLib
                         pu.Initialize(transportController, players[i], false);
                     }
                 }
-                pu.SetPlayerInit(players[i].playerInit);
+                pu.SetPlayerInit(players[i].playerInit,players[i].isBot);
             }
-
+            OnPlayerSpawned(masterControllerDic);
         }
 
         public void PlayerJoined(string conId, string auth, PlayerInitModel init)
@@ -154,14 +162,12 @@ namespace JAMLib
             PlayerStatePack ps = new PlayerStatePack();
             ps.playerState = GetSpawnPlayerState(playerInitDic.Count);
             ps.conId = conId;
-            Debug.Log("Conid " + conId);
             ps.playerInit = init;
             playerInitDic.Add(ps);
         }
 
         public void InitiateMatch()
         {
-            Debug.Log("InitiateMatch");
             DataPackageHistory dh = new DataPackageHistory();
             DataPackage dp = new DataPackage();
             DataInstance di = new DataInstance();

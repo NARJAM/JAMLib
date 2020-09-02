@@ -18,7 +18,6 @@ namespace JAMLib
 
         public override ClientMessagePack GetData()
         {
-            Debug.Log("GetData");
             ClientMessagePack pi = new ClientMessagePack();
             pi.inputData = masterController.inputController.SampleInput();
             pi.serverEventRequestModel = masterController.liveController.SampleServerRequests();

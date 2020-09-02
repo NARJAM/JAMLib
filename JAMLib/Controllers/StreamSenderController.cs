@@ -27,7 +27,6 @@ namespace JAMLib
         Coroutine sdpc;
         public void StartStream(string eventName)
         {
-            Debug.Log("StartStream " + eventName);
             emitEventName = eventName;
             if (sdpc != null)
             {

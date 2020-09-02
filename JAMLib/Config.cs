@@ -8,7 +8,10 @@ namespace JAMLib
         public bool isClientSidePrediction = false;
         public bool isOffline = true;
         public float maxCorrectionError = 1f;
-        public int botCount=5;
+        public int botCount=5;  
+
+        
+
         public StreamSenderConfigModel inputSenderConfig = new StreamSenderConfigModel
         {
             sendRate = 2,
