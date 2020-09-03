@@ -8,7 +8,7 @@ namespace JAMLib
     public abstract class StreamSenderController<OutgoingData>
     {
         [Header("Config")]
-        public List<DataPackage> packageHistory = new List<DataPackage>();
+        public List<DataPackage<OutgoingData>> packageHistory = new List<DataPackage<OutgoingData>>();
         public StreamSenderConfigModel streamSenderConfig;
         string emitEventName;
         public bool sendMute;
@@ -35,23 +35,26 @@ namespace JAMLib
             sdpc = looper.StartCoroutine(SendDataPackageCor());
         }
 
-
+        DataPackage<OutgoingData> currentPackageSend;
+        List<DataInstance<OutgoingData>> dataStreamCache = new List<DataInstance<OutgoingData>>();
+        DataInstance<OutgoingData> di;
         IEnumerator SendDataPackageCor()
         {
             while (true)
             {
-                DataPackage currentPackageSend = new DataPackage();
-                List<DataInstance> dataStreamCache = new List<DataInstance>();
+                 currentPackageSend = new DataPackage<OutgoingData>();
+                 dataStreamCache.Clear();
 
                 for (int i = 0; i <= streamSenderConfig.sendRate; i++)
                 {
-                    DataInstance di = new DataInstance();
-                    di.data = IMultiplayerController.m_instance.serializer.Serialize(GetData());
+                    di = new DataInstance<OutgoingData>();
+                    di.data = GetData();
                     di.instanceId = instancesSentCount;
                     instancesSentCount++;
                     dataStreamCache.Add(di);
                     yield return new WaitForFixedUpdate();
                 }
+
 
                 currentPackageSend.packageId = packagesSentCount;
                 packagesSentCount++;
@@ -60,7 +63,7 @@ namespace JAMLib
             }
         }
 
-        public void SendDataPackage(DataPackage livePackage)
+        public void SendDataPackage(DataPackage<OutgoingData> livePackage)
         {
             //update history
             if (packageHistory.Count < streamSenderConfig.historySize)
@@ -77,18 +80,13 @@ namespace JAMLib
             }
 
             //create final package with history added
-            DataPackageHistory dataHistory = new DataPackageHistory();
+            DataPackageHistory<OutgoingData> dataHistory = new DataPackageHistory<OutgoingData>();
             dataHistory.dataPackageHistory = (packageHistory);
 
             //send it to transport
-            if (IMultiplayerController.gameAuth == GameAuth.Server)
-            {
-                IMultiplayerController.m_instance.transportController.IEmitToClients<DataPackageHistory>(emitEventName, dataHistory);
-            }
-            else
-            {
-                IMultiplayerController.m_instance.transportController.IEmitToServer<DataPackageHistory>(emitEventName, dataHistory);
-            }
+            EmitToTransport(emitEventName, dataHistory);
         }
+
+        public abstract void EmitToTransport(string eventName, DataPackageHistory<OutgoingData> dataHistory);
     }
 }

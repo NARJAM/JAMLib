@@ -168,9 +168,9 @@ namespace JAMLib
 
         public void InitiateMatch()
         {
-            DataPackageHistory dh = new DataPackageHistory();
-            DataPackage dp = new DataPackage();
-            DataInstance di = new DataInstance();
+            DataPackageHistory<ServerMessagePack> dh = new DataPackageHistory<ServerMessagePack>();
+            DataPackage<ServerMessagePack> dp = new DataPackage<ServerMessagePack>();
+            DataInstance<ServerMessagePack> di = new DataInstance<ServerMessagePack>();
             ServerMessagePack smd = new ServerMessagePack();
             smd.worldState = GetSpawnGameSate();
 
@@ -194,14 +194,14 @@ namespace JAMLib
             }
 
             smd.playerStates = new List<PlayerStatePack>(playerInitDic);
-            di.data = IMultiplayerController.m_instance.serializer.Serialize<ServerMessagePack>(smd);
-            dp.dataStream = new List<DataInstance>();
+            di.data = smd;
+            dp.dataStream = new List<DataInstance<ServerMessagePack>>();
             dp.dataStream.Add(di);
-            dh.dataPackageHistory = new List<DataPackage>();
+            dh.dataPackageHistory = new List<DataPackage<ServerMessagePack>>();
             dh.dataPackageHistory.Add(dp);
             if (!config.isOffline)
             {
-                transportController.IEmitToClients<DataPackageHistory>("start", dh);
+                transportController.IEmitToClients("start", dh);
             }
             stateStreamer = new GameStateSenderController();
             stateStreamer.StartStream("gameState");
@@ -209,9 +209,9 @@ namespace JAMLib
         }
 
         ServerMessagePack startMatchData;
-        public void OnStartMatch(string eventName, string connectionId, DataPackageHistory eventData)
+        public void OnStartMatch(string eventName, string connectionId, DataPackageHistory<ServerMessagePack> eventData)
         {
-            startMatchData = IMultiplayerController.m_instance.serializer.Deserialize<ServerMessagePack>(eventData.dataPackageHistory[0].dataStream[0].data);
+            startMatchData = eventData.dataPackageHistory[0].dataStream[0].data;
             SpawnMatch(startMatchData);
         }
 

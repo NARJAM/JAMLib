@@ -11,6 +11,11 @@ namespace JAMLib
             streamSenderConfig = IMultiplayerController.config.gameStateSenderConfig;
         }
 
+        public override void EmitToTransport(string eventName, DataPackageHistory<ServerMessagePack> dataHistory)
+        {
+            IMultiplayerController.m_instance.transportController.IEmitToClients(eventName, dataHistory);
+        }
+
         public override ServerMessagePack GetData()
         {
             return GetGameState();

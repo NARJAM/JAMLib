@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using JAMLib;
+using UnityEditor.PackageManager;
 
 public class OfflineController : ITransportController
 {
@@ -10,12 +11,12 @@ public class OfflineController : ITransportController
        //Nothing
     }
 
-    public override void SendToClients(string eventName, string dataString)
+    public override void SendToClients(string eventName, DataPackageHistory<ServerMessagePack> dataString)
     {
         base.ReceiveFromServer(eventName, "", dataString);
     }
 
-    public override void SendToServer(string eventName, string dataString)
+    public override void SendToServer(string eventName, DataPackageHistory<ClientMessagePack> dataString)
     {
         base.ReceiveFromClient(eventName, "", dataString);
     }

@@ -7,17 +7,18 @@ namespace JAMLib
     public abstract class ITransportController
     {
         public abstract void JoinRoom(PlayerInitModel initData, string gameAuth, OnJoinedRoom onConnectedEvent);
-        public abstract void SendToClients(string eventName, string dataString);
-        public abstract void SendToServer(string eventName, string dataString);
+        public abstract void SendToClients(string eventName, DataPackageHistory<ServerMessagePack> data);
+        public abstract void SendToServer(string eventName, DataPackageHistory<ClientMessagePack> data);
 
         public string connectionId;
-        Dictionary<string, StreamMessageReceivedEvent> onFromServerDic = new Dictionary<string, StreamMessageReceivedEvent>();
-        Dictionary<string, StreamMessageReceivedEvent> onFromClientDic = new Dictionary<string, StreamMessageReceivedEvent>();
+        Dictionary<string, StreamServerMessageReceivedEvent> onFromServerDic = new Dictionary<string, StreamServerMessageReceivedEvent>();
+        Dictionary<string, StreamClientMessageReceivedEvent> onFromClientDic = new Dictionary<string, StreamClientMessageReceivedEvent>();
 
         List<OnPlayerJoinedEvent> onPlayerJoinedList = new List<OnPlayerJoinedEvent>();
         List<OnPlayerLeftEvent> onPlayerLeftList = new List<OnPlayerLeftEvent>();
 
-        public delegate void StreamMessageReceivedEvent(string eventName, string connectionId, DataPackageHistory eventData);
+        public delegate void StreamClientMessageReceivedEvent(string eventName, string connectionId, DataPackageHistory<ClientMessagePack> eventData);
+        public delegate void StreamServerMessageReceivedEvent(string eventName, string connectionId, DataPackageHistory<ServerMessagePack> eventData);
 
         public delegate void OnJoinedRoom();
         public delegate void OnPlayerJoinedEvent(string conId, string auth, PlayerInitModel init);
@@ -29,7 +30,7 @@ namespace JAMLib
             JoinRoom(initData, gameAuth, onConnectedEvent);
         }
 
-        public void IOnFromServer(string eventName, StreamMessageReceivedEvent onNodeEvent)
+        public void IOnFromServer(string eventName, StreamServerMessageReceivedEvent onNodeEvent)
         {
             if (onFromServerDic.ContainsKey(eventName))
             {
@@ -39,7 +40,7 @@ namespace JAMLib
             onFromServerDic.Add(eventName, onNodeEvent);
         }
 
-        public void IOnFromClient(string eventName, StreamMessageReceivedEvent onNodeEvent)
+        public void IOnFromClient(string eventName, StreamClientMessageReceivedEvent onNodeEvent)
         {
             if (onFromClientDic.ContainsKey(eventName))
             {
@@ -74,44 +75,37 @@ namespace JAMLib
             onFromClientDic.Remove(eventName);
         }
 
-        public void IEmitToClients<T>(string eventName, T eventData)
+        public void IEmitToClients(string eventName, DataPackageHistory<ServerMessagePack> eventData)
         {
-            string dataString = IMultiplayerController.m_instance.serializer.Serialize<T>(eventData);
-            SendToClients(eventName, dataString);
+            SendToClients(eventName, eventData);
         }
 
-        public void IEmitToServer<T>(string eventName, T eventData)
+        public void IEmitToServer(string eventName, DataPackageHistory<ClientMessagePack> eventData)
         {
-            string dataString = IMultiplayerController.m_instance.serializer.Serialize<T>(eventData);
-            SendToServer(eventName, dataString);
+            SendToServer(eventName, eventData);
         }
 
         #region AutoResponses
-        public void ReceiveFromClient(string eventName, string connectionId, string eventData)
+        public void ReceiveFromClient(string eventName, string connectionId, DataPackageHistory<ClientMessagePack> eventData)
         {
-            StreamMessageReceivedEvent callback;
-            DataPackageHistory eventObj = new DataPackageHistory();
-
-            eventObj = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData);
+            StreamClientMessageReceivedEvent callback;
 
             if (onFromClientDic.TryGetValue(eventName, out callback))
             {
-                callback.Invoke(eventName, connectionId, eventObj);
+                callback.Invoke(eventName, connectionId, eventData);
             }
         }
 
-        public void ReceiveFromServer(string eventName, string connectionId, string eventData)
+        public void ReceiveFromServer(string eventName, string connectionId, DataPackageHistory<ServerMessagePack> eventData)
         {
-            StreamMessageReceivedEvent callback;
-            DataPackageHistory eventObj = new DataPackageHistory();
-            eventObj = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory>(eventData);
+            StreamServerMessageReceivedEvent callback;
             if (eventName == null)
             {
                 eventName = "";
             }
             if (onFromServerDic.TryGetValue(eventName, out callback))
             {
-                callback.Invoke(eventName, connectionId, eventObj);
+                callback.Invoke(eventName, connectionId, eventData);
             }
         }
 

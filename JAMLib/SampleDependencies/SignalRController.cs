@@ -6,6 +6,7 @@ using BestHTTP.SignalR.Hubs;
 using BestHTTP.SignalR.Messages;
 using System;
 using PlatformSupport.Collections.ObjectModel;
+using UnityEditor.PackageManager;
 
 namespace JAMLib
 {
@@ -41,13 +42,15 @@ namespace JAMLib
             onCon.Invoke();
         }
 
-        public override void SendToClients(string eventName, string dataString)
+        public override void SendToClients(string eventName, DataPackageHistory<ServerMessagePack> data)
         {
+            string dataString = IMultiplayerController.m_instance.serializer.Serialize(data);
             signalRConnection[IMultiplayerController.config.hubName].Call("SendToClients", eventName, dataString);
         }
 
-        public override void SendToServer(string eventName, string dataString)
+        public override void SendToServer(string eventName, DataPackageHistory<ClientMessagePack> data)
         {
+            string dataString = IMultiplayerController.m_instance.serializer.Serialize(data);
             signalRConnection[IMultiplayerController.config.hubName].Call("SendToServer", eventName, dataString);
         }
 
@@ -82,15 +85,19 @@ namespace JAMLib
             string eventName = msg.Arguments[0].ToString();
             string connectionId = msg.Arguments[1].ToString();
             string eventData = msg.Arguments[2].ToString();
-            base.ReceiveFromClient(eventName, connectionId, eventData);
+
+            DataPackageHistory<ClientMessagePack> dh = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory<ClientMessagePack>>(eventData);
+            base.ReceiveFromClient(eventName, connectionId, dh);
         }
 
         void ReceiveFromServer(Hub hub, MethodCallMessage msg)
         {
             string eventName = msg.Arguments[0].ToString();
             string connectionId = msg.Arguments[1].ToString();
-            string eventData = msg.Arguments[2].ToString();
-            base.ReceiveFromServer(eventName, connectionId, eventData);
+            string eventData = msg.Arguments[2].ToString(); 
+            
+            DataPackageHistory<ServerMessagePack> dh = IMultiplayerController.m_instance.serializer.Deserialize<DataPackageHistory<ServerMessagePack>>(eventData);
+            base.ReceiveFromServer(eventName, connectionId, dh);
         }
 
     }

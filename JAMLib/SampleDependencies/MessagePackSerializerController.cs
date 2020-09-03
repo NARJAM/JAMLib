@@ -14,18 +14,18 @@ namespace JAMLib
 
         public MessagePackSerializerController()
         {
-            MessagePackSerializerOptions finalOptions = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
-            lz4Options = finalOptions;
+         //   MessagePackSerializerOptions finalOptions = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
+           // lz4Options = finalOptions;
         }
 
         public override T Deserialize<T>(string data)
         {
-            return MessagePackSerializer.Deserialize<T>(Convert.FromBase64String(data), lz4Options);
+            return MessagePackSerializer.Deserialize<T>(Convert.FromBase64String(data));
         }
 
         public override string Serialize<T>(T data)
         {
-            string dataString = Convert.ToBase64String(MessagePackSerializer.Serialize<T>(data, lz4Options));
+            string dataString = Convert.ToBase64String(MessagePackSerializer.Serialize<T>(data));
             return dataString;
         }
     }

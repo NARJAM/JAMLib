@@ -79,30 +79,30 @@ namespace JAMLib
     }
 
     [MessagePackObject]
-    public struct DataInstance
+    public struct DataInstance<DataType>
     {
         [Key(0)]
-        public string data;
+        public DataType data;
 
         [Key(1)]
         public int instanceId;
     }
 
     [MessagePackObject]
-    public struct DataPackage
+    public struct DataPackage<DataType>
     {
         [Key(0)]
-        public List<DataInstance> dataStream;
+        public List<DataInstance<DataType>> dataStream;
 
         [Key(1)]
         public int packageId;
     }
 
     [MessagePackObject]
-    public struct DataPackageHistory
+    public struct DataPackageHistory<DataType>
     {
         [Key(0)]
-        public List<DataPackage> dataPackageHistory;
+        public List<DataPackage<DataType>> dataPackageHistory;
     }
 
     public enum GameAuth

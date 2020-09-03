@@ -16,6 +16,11 @@ namespace JAMLib
             masterController = _masterController;
         }
 
+        public override void EmitToTransport(string eventName, DataPackageHistory<ClientMessagePack> dataHistory)
+        {
+            IMultiplayerController.m_instance.transportController.IEmitToServer(eventName, dataHistory);
+        }
+
         public override ClientMessagePack GetData()
         {
             ClientMessagePack pi = new ClientMessagePack();
