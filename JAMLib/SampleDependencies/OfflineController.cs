@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using JAMLib;
-using UnityEditor.PackageManager;
 
 public class OfflineController : ITransportController
 {

@@ -64,9 +64,6 @@ public struct CargoStateModel
     [Key(1)]
     public NetworkVector3 forward;
 
-    [Key(2)]
-    public int pathIndex;
-
     [Key(3)]
     public int cargoColorType;
 

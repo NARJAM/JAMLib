@@ -6,7 +6,6 @@ using BestHTTP.SignalR.Hubs;
 using BestHTTP.SignalR.Messages;
 using System;
 using PlatformSupport.Collections.ObjectModel;
-using UnityEditor.PackageManager;
 
 namespace JAMLib
 {
