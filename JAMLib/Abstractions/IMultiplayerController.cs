@@ -67,7 +67,7 @@ namespace JAMLib
             {
                 InitializeServer(init, GameAuth.Server);
                 InitializeClient(init, GameAuth.Client);
-                InitiateMatch();
+                InitiateMatch(init);
             }
         }
 
@@ -166,7 +166,7 @@ namespace JAMLib
             playerInitDic.Add(ps);
         }
 
-        public void InitiateMatch()
+        public void InitiateMatch(PlayerInitModel playerInitModel)
         {
             DataPackageHistory<ServerMessagePack> dh = new DataPackageHistory<ServerMessagePack>();
             DataPackage<ServerMessagePack> dp = new DataPackage<ServerMessagePack>();
@@ -177,7 +177,7 @@ namespace JAMLib
             if (config.isOffline)
             {
                 PlayerStatePack psp = new PlayerStatePack();
-                PlayerInitModel pim = new PlayerInitModel();
+                PlayerInitModel pim = playerInitModel;
                 psp.playerInit = pim;
                 psp.conId = "offline";
                 playerInitDic.Add(psp);
@@ -190,6 +190,7 @@ namespace JAMLib
                 psp.playerInit = pim;
                 psp.conId = "b"+i;
                 psp.isBot = true;
+                psp.playerState = GetBotSpawnPlayerState(i);
                 playerInitDic.Add(psp);
             }
 
@@ -207,6 +208,8 @@ namespace JAMLib
             stateStreamer.StartStream("gameState");
             SpawnMatch(smd);
         }
+
+        public abstract PlayerStateModel GetBotSpawnPlayerState(int index);
 
         ServerMessagePack startMatchData;
         public void OnStartMatch(string eventName, string connectionId, DataPackageHistory<ServerMessagePack> eventData)

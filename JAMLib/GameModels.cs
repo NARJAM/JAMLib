@@ -16,23 +16,26 @@ public struct FoodData
 
     [Key(2)]
     public int foodObjectType;
-
+    
     [Key(3)]
-    public bool isMoving;
+    public bool canTravel;
 
     [Key(4)]
-    public double initialSize;
+    public bool isMoving;
 
     [Key(5)]
-    public double floatingSpeed;
+    public double initialSize;
 
     [Key(6)]
-    public double rotationSpeed;
+    public double floatingSpeed;
 
     [Key(7)]
-    public NetworkQuaternion foodBoomRotation;
+    public double rotationSpeed;
 
     [Key(8)]
+    public NetworkQuaternion foodBoomRotation;
+
+    [Key(9)]
     public NetworkQuaternion foodSelfRotation;
 }
 
@@ -84,6 +87,9 @@ public struct PlayerStateModel
     public CargoTrainStateModel cargoTrainModel;
 
     [Key(3)]
+    public NetworkQuaternion playerSelfRotation;
+
+    [Key(4)]
     public int vykerVisionDuration;
 }
 
